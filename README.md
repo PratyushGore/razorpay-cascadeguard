@@ -113,16 +113,23 @@ During the architecture and development of CascadeGuard, we encountered two crit
 ## 🚀 Quickstart Guide
 
 ### Prerequisites
-- Python 3.11+
-- Node.js 18+ & npm
+- **Python 3.11+** *(Tested on Python 3.13)*
+- **Node.js 18+** & **npm**
+- **Git**
+
+---
 
 ### 1. Clone & Setup
 ```bash
-git clone https://github.com/<your-username>/razorpay-cascadeguard.git
+git clone https://github.com/PratyushGore/razorpay-cascadeguard.git
 cd razorpay-cascadeguard
 ```
 
+---
+
 ### 2. Configure Backend Environment
+Create and activate an isolated Python virtual environment inside the `backend` directory:
+
 ```bash
 cd backend
 python -m venv venv
@@ -130,45 +137,104 @@ python -m venv venv
 # Windows (PowerShell):
 .\venv\Scripts\Activate.ps1
 
+# Windows (Command Prompt):
+.\venv\Scripts\activate.bat
+
 # Linux / macOS:
 source venv/bin/activate
 
+# Install all backend dependencies:
 pip install -r requirements.txt
+```
+
+Initialize your backend environment configuration:
+```bash
+# From the backend/ directory (or root):
+cp ../.env.example .env
+# On Windows PowerShell:
+# Copy-Item ..\.env.example .env
+```
+
+*(Optional: Set your Gemini API key in `backend/.env` to enable live LLM reasoning, or omit it to run on the built-in deterministic heuristic fallback engine with 100% test compliance)*:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+RAZORPAY_WEBHOOK_SECRET=sampleWebhookSecret
+DATABASE_URL=sqlite:///./cascadeguard.db
+SECRET_KEY=razorpay_secret_key_change_me_in_production
+ACTIVE_JURISDICTION=IN_RBI
+```
+Return to the project root:
+```bash
 cd ..
 ```
 
-*(Optional: Set your Gemini API key in `backend/.env` or rely on the built-in deterministic fallback engine)*:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-RAZORPAY_KEY_ID=rzp_test_sampleKey
-RAZORPAY_KEY_SECRET=sampleSecretKey
-RAZORPAY_WEBHOOK_SECRET=sampleWebhookSecret
-DATABASE_URL=sqlite:///./cascadeguard.db
-ACTIVE_JURISDICTION=IN_RBI
-```
+---
 
 ### 3. Configure Frontend Environment
+Install dependencies for the React TypeScript + Vite + Tailwind CSS dashboard:
 ```bash
 cd frontend
 npm install
 cd ..
 ```
 
-### 4. Run Both Services Concurrently (Single Command)
-Run the root demo launcher to spin up both the FastAPI backend and React frontend concurrently:
+---
+
+### 4. Run Services
+
+#### Option A: Unified Launcher (Recommended — Single Command)
+Launch both the FastAPI backend and React frontend concurrently with synchronized log streaming and graceful termination:
 ```bash
 python run_demo.py
 ```
-- **Mission Control Dashboard:** `http://localhost:5173`
-- **FastAPI Interactive Swagger Docs:** `http://localhost:8000/docs`
+
+#### Option B: Manual Launch (Separate Terminals)
+- **Terminal 1 — Backend (FastAPI):**
+  ```powershell
+  # Windows PowerShell (from root):
+  $env:PYTHONPATH="."
+  .\backend\venv\Scripts\python -m uvicorn backend.main:app --reload --port 8000
+  
+  # Linux / macOS (from root):
+  PYTHONPATH=. ./backend/venv/bin/uvicorn backend.main:app --reload --port 8000
+  ```
+- **Terminal 2 — Frontend (Vite React):**
+  ```bash
+  cd frontend
+  npm run dev
+  ```
+
+#### Service URLs
+- 🖥️ **Mission Control Dashboard:** [http://localhost:5173](http://localhost:5173)
+- 📖 **FastAPI Interactive Swagger Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- 🩺 **Health Check Endpoint:** [http://localhost:8000/health](http://localhost:8000/health)
+
+---
 
 ### 5. Run Automated Verification Tests
-Execute the full pytest suite to verify all compliance gates, webhook HMAC checks, and benchmark endpoints:
+Execute the full pytest suite (13 automated compliance gates, webhook HMAC authentication, SHA-256 ledger immutability, and 50-case benchmark pipeline):
+
 ```powershell
-# In project root:
+# Windows (PowerShell):
 $env:PYTHONPATH="."
 .\backend\venv\Scripts\python -m pytest backend/tests/ -v
 ```
+
+```bash
+# Linux / macOS:
+PYTHONPATH=. ./backend/venv/bin/pytest backend/tests/ -v
+```
+
+---
+
+### 6. Execute the 50-Case Compliance Benchmark
+Trigger the full 50-scenario regulatory stress test directly via API or UI:
+- **Via Mission Control:** Click **"Execute 50-Case Compliance Benchmark"** in the Chaos Control panel.
+- **Via cURL:**
+  ```bash
+  curl -X POST http://localhost:8000/api/v1/benchmark/run-50
+  ```
+
 
 ---
 
