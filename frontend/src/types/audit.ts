@@ -1,4 +1,4 @@
-export type AuditStage = 'INGESTED' | 'DIAGNOSED' | 'GATED' | 'DISPATCHED';
+export type AuditStage = 'INGESTED' | 'DIAGNOSED' | 'GATED' | 'DISPATCHED' | 'EXECUTED_RECOVERED';
 
 export interface AuditEntry {
   id: string; // Sha-256 block hash or random string

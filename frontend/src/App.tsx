@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ShieldAlert, RefreshCw, Cpu, Database, AlertOctagon } from 'lucide-react';
 import { Transaction } from './types/transaction';
 import { Jurisdiction } from './types/compliance';
@@ -21,6 +21,7 @@ export const App: React.FC = () => {
   const [streamSpeedMs, setStreamSpeedMs] = useState(4000);
   const [isOutageSimulated, setIsOutageSimulated] = useState(false);
   const [injectCounter, setInjectCounter] = useState(1);
+  const activeTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   // 1. Initial Load and Jurisdiction Sync
   const loadTransactions = async (jur: Jurisdiction) => {
@@ -37,7 +38,7 @@ export const App: React.FC = () => {
     loadTransactions(activeJurisdiction);
   }, [activeJurisdiction]);
 
-  // 2. Real-time Stream Orchestration (WebSocket fallback)
+  // 2. Real-time Stream Orchestration with Realistic Lifecycle Simulation
   useEffect(() => {
     if (!isAutoStreaming) return;
 
@@ -48,6 +49,7 @@ export const App: React.FC = () => {
           const nextIndex = prev + 1;
           const freshTx = apiService.injectFailure(nextIndex, activeJurisdiction);
           
+          // Phase 1: INGESTED / FAILED in feed
           setTransactions((prevTxs) => {
             const updated = [freshTx, ...prevTxs];
             if (updated.length > 50) updated.pop();
@@ -56,6 +58,51 @@ export const App: React.FC = () => {
 
           // Focus on the newly ingested failure to highlight visual state transition
           setSelectedTxId(freshTx.id);
+
+          const isHalted = freshTx.complianceResult?.status === 'HALTED';
+          if (isHalted) {
+            // Policy halted: stays FAILED_PERMANENTLY / HALTED
+            return nextIndex;
+          }
+
+          // Phase 2: DIAGNOSED -> RETRYING (transition after 700ms)
+          const retryTimer = setTimeout(() => {
+            setTransactions((prevTxs) =>
+              prevTxs.map((t) => (t.id === freshTx.id ? { ...t, status: 'RECOVERING' } : t))
+            );
+            apiService.updateTransactionStatus(freshTx.id, 'RECOVERING');
+
+            // Phase 3: RETRYING -> FINAL_STATUS (after 2.5 to 3.5 seconds)
+            const resolutionDelay = Math.floor(Math.random() * 1000) + 2500; // 2500-3500ms
+            const resolveTimer = setTimeout(() => {
+              const switchHealth = freshTx.bankTelemetry.switchHealthPct;
+              const isOverridden = freshTx.complianceResult?.status === 'OVERRIDDEN';
+              
+              let finalStatus: Transaction['status'] = 'RECOVERED';
+              const rand = Math.random();
+
+              if (switchHealth < 30 && !isOverridden) {
+                // Severe bank outage without secondary routing override
+                finalStatus = rand < 0.6 ? 'FAILED' : 'RECOVERED';
+              } else {
+                // High recovery likelihood (75–80% success)
+                finalStatus = rand < 0.78 ? 'RECOVERED' : 'FAILED';
+              }
+
+              setTransactions((prevTxs) =>
+                prevTxs.map((t) =>
+                  t.id === freshTx.id
+                    ? { ...t, status: finalStatus, retryCount: t.retryCount + 1 }
+                    : t
+                )
+              );
+              apiService.updateTransactionStatus(freshTx.id, finalStatus, true);
+            }, resolutionDelay);
+
+            activeTimers.current.push(resolveTimer);
+          }, 700);
+
+          activeTimers.current.push(retryTimer);
           return nextIndex;
         });
       }
@@ -66,6 +113,8 @@ export const App: React.FC = () => {
 
     return () => {
       disconnect();
+      activeTimers.current.forEach(clearTimeout);
+      activeTimers.current = [];
     };
   }, [isAutoStreaming, streamSpeedMs, activeJurisdiction]);
 
@@ -209,38 +258,57 @@ export const App: React.FC = () => {
   };
 
   const handleTriggerRetry = async (txId: string) => {
-    const updatedTx = await apiService.triggerRetry(txId, activeJurisdiction);
-    
-    // Update transactions array
+    // 1. Immediately transition to RETRYING
     setTransactions((prev) =>
-      prev.map((t) => (t.id === txId ? { ...t, ...updatedTx } : t))
+      prev.map((t) => (t.id === txId ? { ...t, status: 'RECOVERING' } : t))
     );
+    apiService.updateTransactionStatus(txId, 'RECOVERING');
 
-    // If simulating locally, poll state after a short delay to fetch recovered results
-    setTimeout(() => {
-      loadTransactions(activeJurisdiction);
-    }, 2000);
+    await apiService.triggerRetry(txId, activeJurisdiction);
+
+    // 2. Resolve recovery after 2.5 seconds
+    const timer = setTimeout(() => {
+      setTransactions((prev) =>
+        prev.map((t) => {
+          if (t.id !== txId) return t;
+          const isHalted = t.complianceResult?.status === 'HALTED';
+          if (isHalted) {
+            apiService.updateTransactionStatus(txId, 'FAILED_PERMANENTLY', true);
+            return { ...t, status: 'FAILED_PERMANENTLY', retryCount: t.retryCount + 1 };
+          }
+          // High recovery probability (82%) on manual trigger
+          const finalStatus: Transaction['status'] = Math.random() < 0.82 ? 'RECOVERED' : 'FAILED';
+          apiService.updateTransactionStatus(txId, finalStatus, true);
+          return { ...t, status: finalStatus, retryCount: t.retryCount + 1 };
+        })
+      );
+    }, 2500);
+
+    activeTimers.current.push(timer);
   };
 
-  // 4. Metric Calculations
+  // 4. Metric Calculations (Live Revenue & Recovery Statistics)
   const totalFailures = transactions.length;
 
-  const recoveredVolumeINR = transactions
-    .filter((t) => t.status === 'RECOVERED' && t.currency === 'INR')
+  const recoveredTransactions = transactions.filter((t) => t.status === 'RECOVERED');
+  const recoveredCount = recoveredTransactions.length;
+
+  // Recovered INR (₹)
+  const recoveredVolumeINR = recoveredTransactions
+    .filter((t) => t.currency === 'INR')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const recoveredVolumeUSD = transactions
-    .filter((t) => t.status === 'RECOVERED' && t.currency !== 'INR')
+  // Recovered USD ($)
+  const recoveredVolumeUSD = recoveredTransactions
+    .filter((t) => t.currency !== 'INR')
     .reduce((sum, t) => {
       const valueInUSD = t.currency === 'EUR' ? t.amount * 1.08 : t.amount;
-      return sum + valueInUSD;
+      return sum + Math.round(valueInUSD);
     }, 0);
 
-  // Recovery Rate calculation: (Recovered Transactions / Handled Recovery cases)
-  const recoveredCount = transactions.filter((t) => t.status === 'RECOVERED').length;
-  const haltedCount = transactions.filter((t) => t.status === 'FAILED_PERMANENTLY').length;
-  const recoveryRate = totalFailures > haltedCount
-    ? (recoveredCount / (totalFailures - haltedCount)) * 100
+  // Recovery Rate: (Recovered Count / Total Ingested Count) * 100
+  const recoveryRate = totalFailures > 0
+    ? (recoveredCount / totalFailures) * 100
     : 0;
 
   const totalOverrides = transactions.filter(

@@ -145,12 +145,12 @@ export function evaluateCompliance(tx: Omit<Transaction, 'complianceResult'>, ju
   };
 }
 
-// 12+ Realistic Failure Cases
+// 11 Realistic Seed Failure & Recovery Cases
 export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
   {
     id: 'txn_9821',
-    timestamp: '2026-08-26T00:41:10Z',
-    amount: 8500,
+    timestamp: '2026-08-26T00:32:10Z',
+    amount: 14500,
     currency: 'INR',
     paymentRail: 'UPI',
     errorCode: 'BAD_REQUEST_TIMEOUT',
@@ -162,28 +162,28 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
       proposedAction: 'Initiate immediate retry on the same HDFC gateway with a 15-second delay.',
       suggestedDelayMinutes: 0.25
     },
-    status: 'FAILED',
+    status: 'RECOVERED',
     customerId: 'cust_8172',
     customerName: 'Aditya Sen',
-    retryCount: 0,
+    retryCount: 1,
     maxRetriesAllowed: 3
   },
   {
     id: 'txn_9822',
-    timestamp: '2026-08-26T00:41:52Z',
-    amount: 12000,
+    timestamp: '2026-08-26T00:33:52Z',
+    amount: 11200,
     currency: 'INR',
     paymentRail: 'MANDATE',
-    errorCode: 'VELOCITY_REJECTED',
-    errorMessage: 'Mandate velocity limit exceeded. Consecutive daily charge count exceeds parameter bounds.',
+    errorCode: 'NETWORK_CONGESTION',
+    errorMessage: 'Bank switch core router temporary latency spike. Auto-debit packet dropped.',
     bankTelemetry: bankTelemetryState['State Bank of India (SBI)'],
     aiDiagnosis: {
-      rootCause: 'Repeated billing attempts triggered by merchant subscription scheduler sync lag.',
+      rootCause: 'Network congestion during peak morning clearing cycle.',
       confidenceScore: 95,
-      proposedAction: 'Run intelligent rapid retry using UPI auto-debit in 5 minutes.',
-      suggestedDelayMinutes: 5
+      proposedAction: 'Run intelligent rapid retry routed via secondary ICICI auto-debit pipeline.',
+      suggestedDelayMinutes: 1
     },
-    status: 'FAILED',
+    status: 'RECOVERED',
     customerId: 'cust_9011',
     customerName: 'Rohan Sharma',
     retryCount: 1,
@@ -191,8 +191,8 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
   },
   {
     id: 'txn_9823',
-    timestamp: '2026-08-26T00:42:15Z',
-    amount: 2500,
+    timestamp: '2026-08-26T00:35:15Z',
+    amount: 4800,
     currency: 'INR',
     paymentRail: 'UPI',
     errorCode: 'NETWORK_CONGESTION',
@@ -204,16 +204,16 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
       proposedAction: 'Dispatch active 1-click UPI Intent link to customer to complete manually via secondary ICICI network.',
       suggestedDelayMinutes: 0
     },
-    status: 'FAILED',
+    status: 'RECOVERED',
     customerId: 'cust_7721',
     customerName: 'Priya Patel',
-    retryCount: 0,
+    retryCount: 1,
     maxRetriesAllowed: 3
   },
   {
     id: 'txn_9824',
-    timestamp: '2026-08-26T00:42:48Z',
-    amount: 145,
+    timestamp: '2026-08-26T00:36:48Z',
+    amount: 185,
     currency: 'USD',
     paymentRail: 'NETBANKING',
     errorCode: 'INSUFFICIENT_FUNDS',
@@ -222,18 +222,18 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
     aiDiagnosis: {
       rootCause: 'Account balance depletion. Customer bank account balance below debit amount.',
       confidenceScore: 78,
-      proposedAction: 'Trigger automated retry in 12 hours (smart-retry window for paycheck cycle matching).',
-      suggestedDelayMinutes: 720
+      proposedAction: 'Trigger automated retry with intelligent smart-retry timing matching paycheck window.',
+      suggestedDelayMinutes: 360
     },
-    status: 'FAILED',
+    status: 'RECOVERED',
     customerId: 'cust_1102',
     customerName: 'Jane Doe',
-    retryCount: 2, // 3rd attempt coming up
+    retryCount: 1,
     maxRetriesAllowed: 3
   },
   {
     id: 'txn_9825',
-    timestamp: '2026-08-26T00:43:02Z',
+    timestamp: '2026-08-26T00:38:02Z',
     amount: 320,
     currency: 'EUR',
     paymentRail: 'CARD',
@@ -254,7 +254,7 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
   },
   {
     id: 'txn_9826',
-    timestamp: '2026-08-26T00:43:18Z',
+    timestamp: '2026-08-26T00:39:18Z',
     amount: 18500,
     currency: 'INR',
     paymentRail: 'MANDATE',
@@ -267,7 +267,7 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
       proposedAction: 'Halt transaction, generate compliance alert, and request customer AFA verification.',
       suggestedDelayMinutes: 0
     },
-    status: 'FAILED',
+    status: 'FAILED_PERMANENTLY',
     customerId: 'cust_5012',
     customerName: 'Ananya Iyer',
     retryCount: 0,
@@ -275,8 +275,8 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
   },
   {
     id: 'txn_9827',
-    timestamp: '2026-08-26T00:43:40Z',
-    amount: 89,
+    timestamp: '2026-08-26T00:40:40Z',
+    amount: 95,
     currency: 'USD',
     paymentRail: 'CARD',
     errorCode: 'INSUFFICIENT_FUNDS',
@@ -285,19 +285,19 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
     aiDiagnosis: {
       rootCause: 'Soft decline. Transient cash flow dip at client bank card.',
       confidenceScore: 81,
-      proposedAction: 'Queue daily retry (attempt 2/3) at 6:00 AM local time.',
-      suggestedDelayMinutes: 360
+      proposedAction: 'Queue automated smart-retry at opening of merchant batch settlement.',
+      suggestedDelayMinutes: 60
     },
-    status: 'FAILED',
+    status: 'RECOVERED',
     customerId: 'cust_2281',
     customerName: 'Michael Brown',
-    retryCount: 0,
+    retryCount: 1,
     maxRetriesAllowed: 3
   },
   {
     id: 'txn_9828',
-    timestamp: '2026-08-26T00:44:05Z',
-    amount: 6500,
+    timestamp: '2026-08-26T00:41:05Z',
+    amount: 16530,
     currency: 'INR',
     paymentRail: 'NETBANKING',
     errorCode: 'SWITCH_OFFLINE',
@@ -309,36 +309,15 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
       proposedAction: 'Prompt customer to complete checkout via alternate UPI link routed through ICICI PSP.',
       suggestedDelayMinutes: 0
     },
-    status: 'FAILED',
+    status: 'RECOVERED',
     customerId: 'cust_3042',
     customerName: 'Sanjay Kumar',
-    retryCount: 0,
-    maxRetriesAllowed: 2
-  },
-  {
-    id: 'txn_9829',
-    timestamp: '2026-08-26T00:44:30Z',
-    amount: 650,
-    currency: 'EUR',
-    paymentRail: 'MANDATE',
-    errorCode: 'VELOCITY_REJECTED',
-    errorMessage: 'PSD3 mandate speed limit. Consecutive execution interval too short.',
-    bankTelemetry: bankTelemetryState['Barclays'],
-    aiDiagnosis: {
-      rootCause: 'Merchant scheduler re-ran invoice batch within 12 hours.',
-      confidenceScore: 91,
-      proposedAction: 'Force route immediate retry on backup Credit Card rail.',
-      suggestedDelayMinutes: 0
-    },
-    status: 'FAILED',
-    customerId: 'cust_6619',
-    customerName: 'Emma Watson',
-    retryCount: 0,
+    retryCount: 1,
     maxRetriesAllowed: 2
   },
   {
     id: 'txn_9830',
-    timestamp: '2026-08-26T00:44:50Z',
+    timestamp: '2026-08-26T00:42:50Z',
     amount: 19800,
     currency: 'INR',
     paymentRail: 'MANDATE',
@@ -351,7 +330,7 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
       proposedAction: 'Retry transaction by splitting it into two partial invoices (₹9,900 each) and processing in parallel.',
       suggestedDelayMinutes: 1
     },
-    status: 'FAILED',
+    status: 'FAILED_PERMANENTLY',
     customerId: 'cust_8812',
     customerName: 'Vikram Mehta',
     retryCount: 0,
@@ -359,29 +338,29 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
   },
   {
     id: 'txn_9831',
-    timestamp: '2026-08-26T00:45:00Z',
-    amount: 1200,
+    timestamp: '2026-08-26T00:43:00Z',
+    amount: 140,
     currency: 'USD',
     paymentRail: 'MANDATE',
-    errorCode: 'LIMIT_EXCEEDED',
-    errorMessage: 'ACH Return Code R10 - Customer Advises Originator is Not Authorized.',
-    bankTelemetry: bankTelemetryState['Wells Fargo'],
+    errorCode: 'BAD_REQUEST_TIMEOUT',
+    errorMessage: 'Wells Fargo core connection timeout during recurring ACH debit.',
+    bankTelemetry: bankTelemetryState['Chase Bank'],
     aiDiagnosis: {
-      rootCause: 'Direct debit mandate revoked or authorization check failed at Wells Fargo core system.',
+      rootCause: 'Transient gateway timeout at processor switch.',
       confidenceScore: 94,
       proposedAction: 'Attempt immediate retry on customer card on file.',
       suggestedDelayMinutes: 1
     },
-    status: 'FAILED',
+    status: 'RECOVERED',
     customerId: 'cust_9921',
     customerName: 'David Miller',
-    retryCount: 0,
+    retryCount: 1,
     maxRetriesAllowed: 2
   },
   {
     id: 'txn_9832',
-    timestamp: '2026-08-26T00:45:10Z',
-    amount: 3200,
+    timestamp: '2026-08-26T00:44:10Z',
+    amount: 7200,
     currency: 'INR',
     paymentRail: 'UPI',
     errorCode: 'BAD_REQUEST_TIMEOUT',
@@ -390,13 +369,13 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
     aiDiagnosis: {
       rootCause: 'HDFC UPI gateway latency spiked to 2300ms. switchHealthPct is 22%.',
       confidenceScore: 86,
-      proposedAction: 'Wait 30 seconds and retry on same gateway.',
+      proposedAction: 'Wait 30 seconds and retry on secondary ICICI gateway.',
       suggestedDelayMinutes: 0.5
     },
-    status: 'FAILED',
+    status: 'RECOVERED',
     customerId: 'cust_7719',
     customerName: 'Manish Gupta',
-    retryCount: 0,
+    retryCount: 1,
     maxRetriesAllowed: 3
   }
 ];
@@ -413,22 +392,22 @@ export function generateRandomTransaction(idIndex: number): Omit<Transaction, 'c
     { code: 'LIMIT_EXCEEDED', msg: 'Standard transaction limit cap breached.' },
     { code: 'VELOCITY_REJECTED', msg: 'Anti-spam velocity gate rejected attempt.' }
   ];
-  const names = ['Karan Johar', 'Neha Sharma', 'Arjun Kapoor', 'Sophia Loren', 'Robert Vance', 'Carlos Santana', 'Emily Clark'];
+  const names = ['Karan Johar', 'Neha Sharma', 'Arjun Kapoor', 'Sophia Loren', 'Robert Vance', 'Carlos Santana', 'Emily Clark', 'Zoya Akhtar', 'Tanvi Shah', 'Rahul Roy'];
   const banks = Object.keys(bankTelemetryState);
   
   const rail = rails[Math.floor(Math.random() * rails.length)];
   const errorObj = errorCodes[Math.floor(Math.random() * errorCodes.length)];
   const bankName = banks[Math.floor(Math.random() * banks.length)];
   const bankTelemetry = bankTelemetryState[bankName];
-  const amount = Math.floor(Math.random() * 18000) + 100;
+  const amount = Math.floor(Math.random() * 16000) + 450;
   const currency = bankName.includes('Bank of India') || bankName.includes('HDFC') || bankName.includes('ICICI') ? 'INR' : (Math.random() > 0.5 ? 'USD' : 'EUR');
   
   const proposedActions = [
-    'Retry immediately on the same gateway bank.',
-    'Route retry through a backup card gateway.',
-    'Wait 10 minutes and attempt queue re-run.',
-    'Prompt customer for authentication step-up.',
-    'Split invoice amount and attempt partial debits.'
+    'Route retry through a secondary healthy gateway (ICICI).',
+    'Execute automated smart-retry with 15-second backoff delay.',
+    'Dispatch active 1-click UPI Intent link to customer.',
+    'Queue smart-retry matching cardholder settlement window.',
+    'Halt transaction and prompt customer for AFA authorization.'
   ];
   const proposedAction = proposedActions[Math.floor(Math.random() * proposedActions.length)];
 
@@ -442,15 +421,15 @@ export function generateRandomTransaction(idIndex: number): Omit<Transaction, 'c
     errorMessage: errorObj.msg,
     bankTelemetry,
     aiDiagnosis: {
-      rootCause: `Automated analysis detected a high probability of ${errorObj.code.toLowerCase().replace('_', ' ')} due to temporary switch traffic.`,
-      confidenceScore: Math.floor(Math.random() * 40) + 60,
+      rootCause: `Automated telemetry analysis detected ${errorObj.code.toLowerCase().replace(/_/g, ' ')} due to temporary bank switch queue latency.`,
+      confidenceScore: Math.floor(Math.random() * 30) + 70,
       proposedAction,
-      suggestedDelayMinutes: Math.random() > 0.5 ? 5 : 0
+      suggestedDelayMinutes: Math.random() > 0.6 ? 5 : 0
     },
     status: 'FAILED',
     customerId: `cust_${Math.floor(Math.random() * 9000) + 1000}`,
     customerName: names[Math.floor(Math.random() * names.length)],
-    retryCount: Math.floor(Math.random() * 2),
+    retryCount: 0,
     maxRetriesAllowed: 3
   };
 }
@@ -506,8 +485,22 @@ export function generateAuditHistory(transactions: Transaction[]): AuditEntry[] 
           details: `Recovery dispatch engine fired webhook. Dispatching execution: "${comp.sanitizedAction}". Target gateway: ICICI/Chase. Status updated to ${tx.status}.`
         });
       }
+
+      // Stage 5: EXECUTED_RECOVERED (when transaction is RECOVERED)
+      if (tx.status === 'RECOVERED') {
+        list.push({
+          id: generateBlockHash(tx.id, 'EXECUTED_RECOVERED', comp.complianceStamp),
+          timestamp: new Date(timeBase + 2800).toISOString(),
+          txId: tx.id,
+          stage: 'EXECUTED_RECOVERED',
+          complianceStamp: comp.complianceStamp,
+          blockHash: generateBlockHash(tx.id, 'EXECUTED_RECOVERED', comp.complianceStamp),
+          details: `Autonomous recovery executed successfully. Revenue secured: ${tx.currency === 'INR' ? '₹' : tx.currency === 'EUR' ? '€' : '$'}${tx.amount.toLocaleString()}. Gateway ACK: 200_OK.`
+        });
+      }
     }
   });
   
   return list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
+

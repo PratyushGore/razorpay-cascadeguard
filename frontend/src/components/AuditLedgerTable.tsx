@@ -37,8 +37,14 @@ export const AuditLedgerTable: React.FC<AuditLedgerTableProps> = ({ auditEntries
         );
       case 'DISPATCHED':
         return (
-          <span className="px-2.5 py-1 rounded bg-emerald-950/40 border border-emerald-850/50 text-xs font-semibold text-emerald-400 font-mono">
+          <span className="px-2.5 py-1 rounded bg-sky-950/40 border border-sky-700/50 text-xs font-semibold text-sky-400 font-mono">
             DISPATCHED
+          </span>
+        );
+      case 'EXECUTED_RECOVERED':
+        return (
+          <span className="px-2.5 py-1 rounded bg-emerald-950/50 border border-emerald-500/60 text-xs font-semibold text-emerald-400 font-mono flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400" /> RECOVERED
           </span>
         );
       default:

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Play, Pause, AlertCircle, RefreshCw, CheckCircle2, ShieldAlert, WifiOff } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Search, Play, Pause, AlertCircle, RefreshCw, CheckCircle2, WifiOff, X } from 'lucide-react';
 import { Transaction } from '../types/transaction';
 
 interface LiveFailureFeedProps {
@@ -12,6 +12,8 @@ interface LiveFailureFeedProps {
   onChangeStreamSpeed: (ms: number) => void;
 }
 
+export type StatusTab = 'ALL' | 'FAILED' | 'RECOVERING' | 'RECOVERED' | 'HALTED';
+
 export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
   transactions,
   selectedTxId,
@@ -21,67 +23,142 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
   streamSpeedMs,
   onChangeStreamSpeed,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'FAILED' | 'RECOVERING' | 'RECOVERED' | 'FAILED_PERMANENTLY'>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<StatusTab>('ALL');
 
-  // Filter logic
-  const filteredTransactions = transactions.filter((tx) => {
-    const matchesSearch = 
-      tx.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tx.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tx.bankTelemetry.bankName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tx.errorCode.toLowerCase().includes(searchTerm.toLowerCase());
+  // Unified Filtering Logic with useMemo
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((tx) => {
+      // 1. Status / Tab Normalization
+      const rawStatus = (tx.status || '').toUpperCase();
+      const rawRecoveryStatus = ((tx as any).recoveryStatus || '').toUpperCase();
+      const complianceStatus = (tx.complianceResult?.status || (tx as any).complianceStatus || '').toUpperCase();
+      
+      const isHalted = 
+        rawStatus === 'HALTED' ||
+        rawStatus === 'FAILED_PERMANENTLY' ||
+        rawStatus === 'SUSPENDED' ||
+        rawRecoveryStatus === 'BLOCKED' ||
+        rawRecoveryStatus === 'HALTED' ||
+        complianceStatus === 'HALTED';
 
-    const matchesFilter = statusFilter === 'ALL' || tx.status === statusFilter;
+      const isRecovered =
+        rawStatus === 'RECOVERED' ||
+        rawRecoveryStatus === 'SUCCESS' ||
+        rawRecoveryStatus === 'RECOVERED';
 
-    return matchesSearch && matchesFilter;
-  });
+      const isRecovering =
+        rawStatus === 'RECOVERING' ||
+        rawStatus === 'RETRYING' ||
+        rawRecoveryStatus === 'RETRYING' ||
+        rawRecoveryStatus === 'PENDING' ||
+        rawRecoveryStatus === 'RECOVERING';
 
-  const getStatusColor = (status: Transaction['status']) => {
-    switch (status) {
-      case 'FAILED':
-        return 'border-l-rose-500';
-      case 'RECOVERING':
-        return 'border-l-sky-500';
+      const isFailed =
+        (rawStatus === 'FAILED' ||
+        rawStatus === 'UNRECOVERED' ||
+        rawRecoveryStatus === 'FAILED' ||
+        rawRecoveryStatus === 'UNRECOVERED') && !isHalted;
+
+      let matchesTab = false;
+      switch (activeTab) {
+        case 'ALL':
+          matchesTab = true;
+          break;
+        case 'RECOVERED':
+          matchesTab = isRecovered;
+          break;
+        case 'RECOVERING':
+          matchesTab = isRecovering;
+          break;
+        case 'HALTED':
+          matchesTab = isHalted;
+          break;
+        case 'FAILED':
+          matchesTab = isFailed;
+          break;
+      }
+
+      if (!matchesTab) return false;
+
+      // 2. Search Filter Logic across all possible entity identifiers
+      const q = searchQuery.trim().toLowerCase();
+      if (!q) return true;
+
+      const txId = (tx.id || (tx as any).txId || '').toLowerCase();
+      const customer = (tx.customerName || (tx as any).customer || '').toLowerCase();
+      const errorCode = (tx.errorCode || (tx as any).error || '').toLowerCase();
+      const bank = (tx.bankTelemetry?.bankName || (tx as any).bankName || (tx as any).bank || '').toLowerCase();
+      const rail = (tx.paymentRail || (tx as any).rail || '').toLowerCase();
+      const amountStr = String(tx.amount || '').toLowerCase();
+      const errorMsg = (tx.errorMessage || '').toLowerCase();
+
+      return (
+        txId.includes(q) ||
+        customer.includes(q) ||
+        errorCode.includes(q) ||
+        bank.includes(q) ||
+        rail.includes(q) ||
+        amountStr.includes(q) ||
+        errorMsg.includes(q)
+      );
+    });
+  }, [transactions, activeTab, searchQuery]);
+
+  const getStatusColor = (tx: Transaction) => {
+    const isHalted = tx.status === 'FAILED_PERMANENTLY' || tx.status === 'SUSPENDED' || tx.complianceResult?.status === 'HALTED';
+    if (isHalted) {
+      return 'border-l-amber-500';
+    }
+    switch (tx.status) {
       case 'RECOVERED':
         return 'border-l-emerald-500';
-      case 'FAILED_PERMANENTLY':
-        return 'border-l-slate-700';
-      case 'SUSPENDED':
-        return 'border-l-amber-500';
+      case 'RECOVERING':
+        return 'border-l-sky-400';
+      case 'FAILED':
       default:
-        return 'border-l-slate-800';
+        return 'border-l-rose-500';
     }
   };
 
-  const getStatusBadge = (status: Transaction['status']) => {
-    switch (status) {
-      case 'FAILED':
-        return (
-          <span className="flex items-center gap-1 text-xs bg-rose-950/40 text-rose-455 px-2.5 py-1 rounded border border-rose-700/60 font-medium">
-            <AlertCircle className="w-3.5 h-3.5 text-rose-400/80" /> FAILED
-          </span>
-        );
+  const getStatusBadge = (tx: Transaction) => {
+    const isHalted = tx.status === 'FAILED_PERMANENTLY' || tx.status === 'SUSPENDED' || tx.complianceResult?.status === 'HALTED';
+    
+    if (isHalted) {
+      let haltLabel = 'POLICY LIMIT';
+      if (tx.complianceResult?.ruleViolated) {
+        if (tx.complianceResult.ruleViolated.includes('RBI')) haltLabel = 'RBI LIMIT';
+        else if (tx.complianceResult.ruleViolated.includes('NACHA')) haltLabel = 'NACHA CAP';
+        else if (tx.complianceResult.ruleViolated.includes('PSD3')) haltLabel = 'PSD3 SCA';
+        else haltLabel = tx.complianceResult.ruleViolated.slice(0, 9);
+      }
+      return (
+        <span className="flex items-center gap-1 text-xs bg-rose-950/60 text-rose-300 px-2 py-0.5 rounded border border-rose-700/60 font-semibold tracking-tight">
+          <WifiOff className="w-3 h-3 text-rose-400" /> HALTED ({haltLabel})
+        </span>
+      );
+    }
+
+    switch (tx.status) {
       case 'RECOVERING':
         return (
-          <span className="flex items-center gap-1 text-xs bg-sky-950/40 text-sky-400 px-2.5 py-1 rounded border border-sky-700/60 font-medium">
-            <RefreshCw className="w-3.5 h-3.5 text-sky-400/80 animate-spin" /> RETRYING
+          <span className="flex items-center gap-1.5 text-xs bg-sky-950/60 text-sky-400 px-2.5 py-0.5 rounded border border-sky-500/60 font-medium animate-pulse shadow-sm shadow-sky-950">
+            <RefreshCw className="w-3 h-3 text-sky-400 animate-spin" /> RETRYING...
           </span>
         );
       case 'RECOVERED':
         return (
-          <span className="flex items-center gap-1 text-xs bg-emerald-950/40 text-emerald-400 px-2.5 py-1 rounded border border-emerald-700/60 font-medium">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/80" /> RECOVERED
+          <span className="flex items-center gap-1.5 text-xs bg-emerald-950/60 text-emerald-400 px-2.5 py-0.5 rounded border border-emerald-500/60 font-semibold shadow-sm shadow-emerald-950">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> RECOVERED
           </span>
         );
-      case 'FAILED_PERMANENTLY':
-        return (
-          <span className="flex items-center gap-1 text-xs bg-slate-950 text-slate-300 px-2.5 py-1 rounded border border-slate-700/60 font-medium">
-            <WifiOff className="w-3.5 h-3.5 text-slate-400" /> HALTED
-          </span>
-        );
+      case 'FAILED':
       default:
-        return null;
+        return (
+          <span className="flex items-center gap-1 text-xs bg-rose-950/40 text-rose-400 px-2.5 py-0.5 rounded border border-rose-800/50 font-medium">
+            <AlertCircle className="w-3.5 h-3.5 text-rose-400/80" /> UNRECOVERED
+          </span>
+        );
     }
   };
 
@@ -90,19 +167,19 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
     switch (status) {
       case 'PASSED_CLEAN':
         return (
-          <span className="text-xs bg-emerald-950/40 text-emerald-400 px-2.5 py-1 rounded border border-emerald-700/60 font-semibold">
+          <span className="text-xs bg-emerald-950/40 text-emerald-400 px-2 py-0.5 rounded border border-emerald-700/60 font-semibold">
             CLEAN PASS
           </span>
         );
       case 'OVERRIDDEN':
         return (
-          <span className="text-xs bg-amber-950/40 text-amber-400 px-2.5 py-1 rounded border border-amber-700/60 font-semibold">
+          <span className="text-xs bg-amber-950/40 text-amber-400 px-2 py-0.5 rounded border border-amber-700/60 font-semibold">
             OVERRIDDEN
           </span>
         );
       case 'HALTED':
         return (
-          <span className="text-xs bg-rose-950/40 text-rose-455 px-2.5 py-1 rounded border border-rose-700/60 font-semibold">
+          <span className="text-xs bg-rose-950/40 text-rose-455 px-2 py-0.5 rounded border border-rose-700/60 font-semibold">
             HALTED
           </span>
         );
@@ -113,7 +190,7 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
 
   const getRailBadge = (rail: string) => {
     return (
-      <span className="text-xs bg-slate-900 border border-slate-700/60 text-slate-300 px-2.5 py-1 rounded font-mono font-medium">
+      <span className="text-xs bg-slate-900 border border-slate-700/60 text-slate-300 px-2 py-0.5 rounded font-mono font-medium">
         {rail}
       </span>
     );
@@ -180,29 +257,38 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
       {/* Filters & Search */}
       <div className="p-3 border-b border-slate-700 bg-[#131B2E] space-y-2.5">
         <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search TxID, customer, error..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#0B0F17] border border-slate-700/60 rounded pl-9 pr-3 py-2 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:border-indigo-600 transition-colors"
+            placeholder="Search TxID, customer, error, bank, rail, amount..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#0B0F17] border border-slate-700/60 rounded pl-9 pr-8 py-2 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:border-indigo-600 transition-colors"
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              title="Clear search"
+              className="absolute right-2.5 top-2.5 p-0.5 text-slate-400 hover:text-slate-200 rounded transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
         {/* Segmented Filter Control */}
         <div className="flex p-0.5 bg-[#0B0F17] border border-slate-700 rounded overflow-x-auto scrollbar-none">
-          {(['ALL', 'FAILED', 'RECOVERING', 'RECOVERED', 'FAILED_PERMANENTLY'] as const).map((filter) => (
+          {(['ALL', 'FAILED', 'RECOVERING', 'RECOVERED', 'HALTED'] as const).map((tab) => (
             <button
-              key={filter}
-              onClick={() => setStatusFilter(filter)}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
               className={`text-xs flex-1 py-1.5 px-2 text-center rounded font-semibold uppercase tracking-wide whitespace-nowrap transition-colors ${
-                statusFilter === filter
-                  ? 'bg-[#1E293B] text-slate-200'
+                activeTab === tab
+                  ? 'bg-[#1E293B] text-slate-100 shadow-sm border border-slate-650'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              {filter === 'FAILED_PERMANENTLY' ? 'HALTED' : filter}
+              {tab}
             </button>
           ))}
         </div>
@@ -211,8 +297,29 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
       {/* List container */}
       <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-[#0B0F17]">
         {filteredTransactions.length === 0 ? (
-          <div className="text-center py-8 text-sm text-slate-400 font-mono">
-            No transactions match criteria.
+          <div className="flex flex-col items-center justify-center text-center py-12 px-4 space-y-2">
+            <div className="p-2.5 rounded-full bg-slate-900 border border-slate-800 text-slate-500">
+              <Search className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-semibold text-slate-300 font-mono">
+              No matching events found
+            </span>
+            <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
+              {searchQuery
+                ? `No transactions match query "${searchQuery}" in ${activeTab} tab.`
+                : `No transactions currently in ${activeTab} state.`}
+            </p>
+            {(searchQuery || activeTab !== 'ALL') && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setActiveTab('ALL');
+                }}
+                className="mt-2 text-xs font-semibold px-3 py-1 rounded bg-indigo-950/60 border border-indigo-700/60 text-indigo-300 hover:bg-indigo-900/60 transition-colors"
+              >
+                Reset Filters
+              </button>
+            )}
           </div>
         ) : (
           filteredTransactions.map((tx) => {
@@ -222,7 +329,7 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
                 key={tx.id}
                 onClick={() => onSelectTransaction(tx.id)}
                 className={`bg-[#131B2E] border border-slate-700/60 p-3.5 rounded border-l-2 ${getStatusColor(
-                  tx.status
+                  tx
                 )} cursor-pointer select-none transition-colors ${
                   isSelected
                     ? 'bg-slate-800/20 border-slate-650/80 border-l-indigo-500'
@@ -260,7 +367,7 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
                   </div>
                   <div className="flex gap-1 items-center">
                     {getComplianceStatusBadge(tx.complianceResult?.status)}
-                    {getStatusBadge(tx.status)}
+                    {getStatusBadge(tx)}
                   </div>
                 </div>
               </div>
@@ -271,7 +378,7 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
       
       {/* Bottom Counter Panel */}
       <div className="p-3.5 bg-[#131B2E] border-t border-slate-700/60 text-xs text-slate-400 flex items-center justify-between font-mono">
-        <span>Filtered: {filteredTransactions.length}</span>
+        <span>Filtered: {filteredTransactions.length} of {transactions.length}</span>
         <span>Telemetry Sync: OK</span>
       </div>
     </div>

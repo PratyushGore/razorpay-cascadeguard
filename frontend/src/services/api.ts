@@ -7,7 +7,7 @@ const API_BASE_URL = 'http://localhost:8000/api';
 // Local volatile storage for live interactive sessions
 let localTransactions: Transaction[] = [];
 
-// Initialize transactions with compliance results pre-evaluated under India (RBI) rules
+// Initialize transactions with compliance results pre-evaluated under active rules
 export function initLocalState(jurisdiction: Jurisdiction) {
   if (localTransactions.length === 0) {
     localTransactions = initialFailures.map((t) => {
@@ -15,7 +15,7 @@ export function initLocalState(jurisdiction: Jurisdiction) {
       return {
         ...t,
         complianceResult: compliance,
-        status: compliance.status === 'HALTED' ? 'FAILED_PERMANENTLY' : 'FAILED'
+        status: compliance.status === 'HALTED' ? 'FAILED_PERMANENTLY' : t.status
       };
     });
   }
@@ -39,7 +39,7 @@ export const apiService = {
         const txUpdatedTelemetry = { ...tx, bankTelemetry: telemetry };
         const complianceResult = evaluateCompliance(txUpdatedTelemetry, jurisdiction);
         
-        // Adjust status if halted or clean pass
+        // Adjust status if halted or unhalted
         let status = tx.status;
         if (complianceResult.status === 'HALTED') {
           status = 'FAILED_PERMANENTLY';
@@ -90,28 +90,37 @@ export const apiService = {
       } else {
         tx.status = 'RECOVERING';
         
-        // Simulate background recovery success/failure depending on bank telemetry status
+        // Simulate background recovery resolution
         setTimeout(() => {
           const finalIdx = localTransactions.findIndex((t) => t.id === txId);
           if (finalIdx !== -1) {
             const currentTx = localTransactions[finalIdx];
             const activeTelemetry = bankTelemetryState[currentTx.bankTelemetry.bankName];
             
-            if (activeTelemetry.status === 'HEALTHY') {
+            if (activeTelemetry.status === 'HEALTHY' || currentTx.complianceResult?.status === 'OVERRIDDEN') {
               currentTx.status = 'RECOVERED';
             } else if (activeTelemetry.status === 'DEGRADED') {
-              // Degraded bank has 40% recovery success rate
-              currentTx.status = Math.random() > 0.6 ? 'RECOVERED' : 'FAILED_PERMANENTLY';
+              currentTx.status = Math.random() > 0.3 ? 'RECOVERED' : 'FAILED';
             } else {
-              currentTx.status = 'FAILED_PERMANENTLY';
+              currentTx.status = 'FAILED';
             }
             console.log(`📡 [CascadeGuard Sim] Transaction ${txId} recovery simulation completed: ${currentTx.status}`);
           }
-        }, 1800);
+        }, 2500);
       }
       
       localTransactions[idx] = { ...tx };
       return { ...tx };
+    }
+  },
+
+  updateTransactionStatus(txId: string, status: Transaction['status'], retryIncrement: boolean = false) {
+    const idx = localTransactions.findIndex((t) => t.id === txId);
+    if (idx !== -1) {
+      localTransactions[idx].status = status;
+      if (retryIncrement) {
+        localTransactions[idx].retryCount += 1;
+      }
     }
   },
 
