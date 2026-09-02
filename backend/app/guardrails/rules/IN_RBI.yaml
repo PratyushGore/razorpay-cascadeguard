@@ -1,0 +1,9 @@
+jurisdiction_code: IN_RBI
+name: "Reserve Bank of India regulatory rules"
+rules:
+  max_retries_24h: 3
+  cooling_off_period_minutes: 480
+  pre_debit_notification_required: true
+  pre_debit_notification_threshold_amount: 15000.0
+  pre_debit_notification_threshold_currency: "INR"
+  upi_min_bank_health_pct: 70.0

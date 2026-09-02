@@ -1,0 +1,6 @@
+jurisdiction_code: EU_PSD3
+name: "European Banking Authority PSD2/PSD3 SCA rules"
+rules:
+  frictionless_threshold_amount: 30.0
+  frictionless_threshold_currency: "EUR"
+  soft_decline_error_code: "SOFT_DECLINE_SCA_REQUIRED"

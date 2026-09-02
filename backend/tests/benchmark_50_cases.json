@@ -1,0 +1,1202 @@
+[
+  {
+    "id": "case_1",
+    "description": "UPI transaction on HDFC when switch is degraded (45% health)",
+    "payload": {
+      "id": "case_1",
+      "amount": 1000.0,
+      "currency": "INR",
+      "rail": "UPI",
+      "bank": "HDFC",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Switch timeout",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Transient timeout, retry immediately"
+    },
+    "bank_health_pct": 45.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_2",
+    "description": "UPI transaction on SBI when switch is DOWN (20% health)",
+    "payload": {
+      "id": "case_2",
+      "amount": 2500.0,
+      "currency": "INR",
+      "rail": "UPI",
+      "bank": "SBI",
+      "error_code": "CONNECTION_FAILED",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Switch downtime",
+      "confidence": 0.95,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Retry immediately to catch recovery"
+    },
+    "bank_health_pct": 20.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_3",
+    "description": "UPI transaction on ICICI switch at 65% health (below RBI UPI limit of 70%)",
+    "payload": {
+      "id": "case_3",
+      "amount": 500.0,
+      "currency": "INR",
+      "rail": "UPI",
+      "bank": "ICICI",
+      "error_code": "SYSTEM_DOWN",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "System down",
+      "confidence": 0.85,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Temporary system outage, immediate retry suggested"
+    },
+    "bank_health_pct": 65.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_4",
+    "description": "UPI transaction on HDFC degraded health (50% health, card rail)",
+    "payload": {
+      "id": "case_4",
+      "amount": 80.0,
+      "currency": "INR",
+      "rail": "CARD",
+      "bank": "HDFC",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Timeout",
+      "confidence": 0.8,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry proposed"
+    },
+    "bank_health_pct": 50.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_5",
+    "description": "UPI transaction on ICICI switch at 35% health (Card rail)",
+    "payload": {
+      "id": "case_5",
+      "amount": 150.0,
+      "currency": "INR",
+      "rail": "CARD",
+      "bank": "ICICI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Connection issue",
+      "confidence": 0.8,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Temporary outage, retry"
+    },
+    "bank_health_pct": 35.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_6",
+    "description": "UPI switch degradation on SBI at 10% health (Card rail)",
+    "payload": {
+      "id": "case_6",
+      "amount": 90.0,
+      "currency": "INR",
+      "rail": "CARD",
+      "bank": "SBI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Gateway issue",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 10.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_7",
+    "description": "UPI transaction on ICICI switch at 55% health (UPI rail)",
+    "payload": {
+      "id": "case_7",
+      "amount": 120.0,
+      "currency": "INR",
+      "rail": "UPI",
+      "bank": "ICICI",
+      "error_code": "TIMEOUT",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Timeout",
+      "confidence": 0.8,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 55.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_8",
+    "description": "UPI transaction on AXIS switch at 25% health (UPI rail)",
+    "payload": {
+      "id": "case_8",
+      "amount": 220.0,
+      "currency": "INR",
+      "rail": "UPI",
+      "bank": "AXIS",
+      "error_code": "TIMEOUT",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Timeout",
+      "confidence": 0.85,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 25.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_9",
+    "description": "Netbanking transaction on HDFC degraded (40% health)",
+    "payload": {
+      "id": "case_9",
+      "amount": 350.0,
+      "currency": "INR",
+      "rail": "NETBANKING",
+      "bank": "HDFC",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Network issue",
+      "confidence": 0.8,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry proposed"
+    },
+    "bank_health_pct": 40.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_10",
+    "description": "Netbanking transaction on SBI switch DOWN (15% health)",
+    "payload": {
+      "id": "case_10",
+      "amount": 420.0,
+      "currency": "INR",
+      "rail": "NETBANKING",
+      "bank": "SBI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Downtime",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 15.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_11",
+    "description": "UPI transaction on AXIS switch at 45% health (UPI rail)",
+    "payload": {
+      "id": "case_11",
+      "amount": 100.0,
+      "currency": "INR",
+      "rail": "UPI",
+      "bank": "AXIS",
+      "error_code": "CONNECTION_FAILED",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Connection failed",
+      "confidence": 0.8,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 45.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_12",
+    "description": "UPI transaction on HDFC switch at 68% health (UPI rail)",
+    "payload": {
+      "id": "case_12",
+      "amount": 150.0,
+      "currency": "INR",
+      "rail": "UPI",
+      "bank": "HDFC",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Degraded health",
+      "confidence": 0.85,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 68.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_13",
+    "description": "UPI transaction on SBI switch at 60% health (UPI rail)",
+    "payload": {
+      "id": "case_13",
+      "amount": 200.0,
+      "currency": "INR",
+      "rail": "UPI",
+      "bank": "SBI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Degraded health",
+      "confidence": 0.85,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 60.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_14",
+    "description": "Netbanking transaction on ICICI switch degraded (50% health)",
+    "payload": {
+      "id": "case_14",
+      "amount": 310.0,
+      "currency": "INR",
+      "rail": "NETBANKING",
+      "bank": "ICICI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Degraded",
+      "confidence": 0.8,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 50.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_15",
+    "description": "Netbanking transaction on AXIS switch DOWN (20% health)",
+    "payload": {
+      "id": "case_15",
+      "amount": 550.0,
+      "currency": "INR",
+      "rail": "NETBANKING",
+      "bank": "AXIS",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "DOWN",
+      "confidence": 0.85,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 20.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_16",
+    "description": "RBI Mandate > 15,000 INR - should trigger intent link conversion",
+    "payload": {
+      "id": "case_16",
+      "amount": 16000.0,
+      "currency": "INR",
+      "rail": "MANDATE",
+      "bank": "HDFC",
+      "error_code": "BAD_REQUEST",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Temporary issue",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Retry immediately to fix state"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SEND_INTENT_LINK",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_17",
+    "description": "RBI Mandate precisely at 15,000 INR (should pass clean as <= 15k limit)",
+    "payload": {
+      "id": "case_17",
+      "amount": 15000.0,
+      "currency": "INR",
+      "rail": "MANDATE",
+      "bank": "HDFC",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Transient gateway failure",
+      "confidence": 0.95,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 500,
+      "reasoning": "Use 500m scheduled retry spacing"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_18",
+    "description": "RBI Mandate cooling period violation (AI proposes 10m retry, overridden to 8h/480m)",
+    "payload": {
+      "id": "case_18",
+      "amount": 2000.0,
+      "currency": "INR",
+      "rail": "MANDATE",
+      "bank": "SBI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "System connection error",
+      "confidence": 0.9,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 10,
+      "reasoning": "AI wants to retry in 10 minutes"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_19",
+    "description": "RBI Mandate cooling period violation (AI proposes immediate retry, overridden to 8h/480m)",
+    "payload": {
+      "id": "case_19",
+      "amount": 2000.0,
+      "currency": "INR",
+      "rail": "MANDATE",
+      "bank": "SBI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "System connection error",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "AI wants to retry immediately"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_20",
+    "description": "RBI recurring mandate velocity cap violation (retry count 3, overridden to HALT)",
+    "payload": {
+      "id": "case_20",
+      "amount": 1000.0,
+      "currency": "INR",
+      "rail": "MANDATE",
+      "bank": "HDFC",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 3,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Durable outage",
+      "confidence": 0.85,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 500,
+      "reasoning": "Attempt retry 4"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_21",
+    "description": "RBI card velocity cap violation (retry count 3, overridden to HALT)",
+    "payload": {
+      "id": "case_21",
+      "amount": 1000.0,
+      "currency": "INR",
+      "rail": "CARD",
+      "bank": "HDFC",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 3,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Gateway error",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_22",
+    "description": "RBI recurring mandate amount > 15,000 INR (overridden to SEND_INTENT_LINK)",
+    "payload": {
+      "id": "case_22",
+      "amount": 25000.0,
+      "currency": "INR",
+      "rail": "MANDATE",
+      "bank": "SBI",
+      "error_code": "BAD_REQUEST",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Required authentication",
+      "confidence": 0.88,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Retry immediate"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SEND_INTENT_LINK",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_23",
+    "description": "RBI recurring mandate amount > 15,000 INR (overridden to SEND_INTENT_LINK)",
+    "payload": {
+      "id": "case_23",
+      "amount": 15001.0,
+      "currency": "INR",
+      "rail": "MANDATE",
+      "bank": "AXIS",
+      "error_code": "BAD_REQUEST",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Required approval",
+      "confidence": 0.9,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 480,
+      "reasoning": "Attempt schedule retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SEND_INTENT_LINK",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_24",
+    "description": "RBI recurring mandate amount 5,000 INR (no cooling off violation, passes clean)",
+    "payload": {
+      "id": "case_24",
+      "amount": 5000.0,
+      "currency": "INR",
+      "rail": "MANDATE",
+      "bank": "ICICI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Gateway error",
+      "confidence": 0.92,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 500,
+      "reasoning": "Attempt retry with 500m delay"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_25",
+    "description": "RBI recurring mandate cooling period (AI proposes 479m delay, overridden to 480m)",
+    "payload": {
+      "id": "case_25",
+      "amount": 100.0,
+      "currency": "INR",
+      "rail": "MANDATE",
+      "bank": "SBI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "System issues",
+      "confidence": 0.85,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 479,
+      "reasoning": "AI recommends 479m delay"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_26",
+    "description": "US NACHA ACH transaction disallowed code R05 (HALT)",
+    "payload": {
+      "id": "case_26",
+      "amount": 50.0,
+      "currency": "USD",
+      "rail": "CARD",
+      "bank": "CHASE",
+      "error_code": "R05",
+      "retry_count": 0,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "Revoked card permission",
+      "confidence": 0.85,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Attempt immediate authorization retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_27",
+    "description": "US NACHA ACH transaction disallowed code R07 (HALT)",
+    "payload": {
+      "id": "case_27",
+      "amount": 60.0,
+      "currency": "USD",
+      "rail": "CARD",
+      "bank": "CHASE",
+      "error_code": "R07",
+      "retry_count": 0,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "Authorization revoked",
+      "confidence": 0.9,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 240,
+      "reasoning": "Attempt authorization retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_28",
+    "description": "US NACHA ACH transaction disallowed code R10 (HALT)",
+    "payload": {
+      "id": "case_28",
+      "amount": 70.0,
+      "currency": "USD",
+      "rail": "CARD",
+      "bank": "CHASE",
+      "error_code": "R10",
+      "retry_count": 0,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "Not authorized",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Attempt immediate retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_29",
+    "description": "US NACHA ACH transaction disallowed code R29 (HALT)",
+    "payload": {
+      "id": "case_29",
+      "amount": 80.0,
+      "currency": "USD",
+      "rail": "CARD",
+      "bank": "CHASE",
+      "error_code": "R29",
+      "retry_count": 0,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "Corporate unauthorized",
+      "confidence": 0.95,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Attempt immediate retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_30",
+    "description": "US NACHA ACH transaction NSF velocity limit violation (retry count 2, overridden to HALT)",
+    "payload": {
+      "id": "case_30",
+      "amount": 100.0,
+      "currency": "USD",
+      "rail": "CARD",
+      "bank": "CHASE",
+      "error_code": "R01",
+      "retry_count": 2,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "Insufficient funds",
+      "confidence": 0.85,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 300,
+      "reasoning": "Retry after user tops up"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_31",
+    "description": "US NACHA ACH transaction NSF velocity limit violation (error code NSF, retry count 2, overridden to HALT)",
+    "payload": {
+      "id": "case_31",
+      "amount": 100.0,
+      "currency": "USD",
+      "rail": "CARD",
+      "bank": "CHASE",
+      "error_code": "NSF",
+      "retry_count": 2,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "No funds",
+      "confidence": 0.8,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "HALT",
+    "expected_status": "HALTED"
+  },
+  {
+    "id": "case_32",
+    "description": "US NACHA ACH card spacing violation (AI proposes 10m spacing, overridden to 240m)",
+    "payload": {
+      "id": "case_32",
+      "amount": 50.0,
+      "currency": "USD",
+      "rail": "CARD",
+      "bank": "CHASE",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "Connection failed",
+      "confidence": 0.88,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 10,
+      "reasoning": "Retry in 10 minutes"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_33",
+    "description": "US NACHA card spacing violation (AI proposes immediate retry, overridden to 240m)",
+    "payload": {
+      "id": "case_33",
+      "amount": 50.0,
+      "currency": "USD",
+      "rail": "CARD",
+      "bank": "CHASE",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "Connection failure",
+      "confidence": 0.88,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Retry immediately"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_34",
+    "description": "US NACHA NSF transaction (retry count 1, under limit, passes clean with 300m delay)",
+    "payload": {
+      "id": "case_34",
+      "amount": 150.0,
+      "currency": "USD",
+      "rail": "CARD",
+      "bank": "CHASE",
+      "error_code": "R01",
+      "retry_count": 1,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "NSF",
+      "confidence": 0.9,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 300,
+      "reasoning": "Retry spacing is 300 minutes, which is above NACHA card limit of 240m"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_35",
+    "description": "US NACHA NSF transaction (retry count 0, under limit, passes clean with 240m delay)",
+    "payload": {
+      "id": "case_35",
+      "amount": 100.0,
+      "currency": "USD",
+      "rail": "CARD",
+      "bank": "CHASE",
+      "error_code": "NSF",
+      "retry_count": 0,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "Insufficient funds",
+      "confidence": 0.9,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 240,
+      "reasoning": "Retry spacing is 240 minutes, which is exactly the minimum NACHA card spacing"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_36",
+    "description": "EU PSD3 SCA Soft Decline (overridden to REQUEST_SCA_STEPUP)",
+    "payload": {
+      "id": "case_36",
+      "amount": 20.0,
+      "currency": "EUR",
+      "rail": "CARD",
+      "bank": "BARCLAYS",
+      "error_code": "SOFT_DECLINE_SCA_REQUIRED",
+      "retry_count": 0,
+      "jurisdiction": "EU_PSD3"
+    },
+    "ai_proposal": {
+      "root_cause": "SCA required",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry proposal"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "REQUEST_SCA_STEPUP",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_37",
+    "description": "EU PSD3 frictionless threshold exceeded (amount 35 EUR > 30 EUR limit, overridden to REQUEST_SCA_STEPUP)",
+    "payload": {
+      "id": "case_37",
+      "amount": 35.0,
+      "currency": "EUR",
+      "rail": "CARD",
+      "bank": "BARCLAYS",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "EU_PSD3"
+    },
+    "ai_proposal": {
+      "root_cause": "Gateway timeout",
+      "confidence": 0.85,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "REQUEST_SCA_STEPUP",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_38",
+    "description": "EU PSD3 frictionless threshold exceeded (amount 100 EUR > 30 EUR limit, overridden to REQUEST_SCA_STEPUP)",
+    "payload": {
+      "id": "case_38",
+      "amount": 100.0,
+      "currency": "EUR",
+      "rail": "CARD",
+      "bank": "BARCLAYS",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "EU_PSD3"
+    },
+    "ai_proposal": {
+      "root_cause": "Gateway timeout",
+      "confidence": 0.85,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 100,
+      "reasoning": "Scheduled retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "REQUEST_SCA_STEPUP",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_39",
+    "description": "EU PSD3 frictionless threshold limit check (amount 30.01 EUR > 30 EUR, overridden to REQUEST_SCA_STEPUP)",
+    "payload": {
+      "id": "case_39",
+      "amount": 30.01,
+      "currency": "EUR",
+      "rail": "CARD",
+      "bank": "BARCLAYS",
+      "error_code": "BAD_REQUEST",
+      "retry_count": 0,
+      "jurisdiction": "EU_PSD3"
+    },
+    "ai_proposal": {
+      "root_cause": "Bad Request",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "REQUEST_SCA_STEPUP",
+    "expected_status": "OVERRIDDEN"
+  },
+  {
+    "id": "case_40",
+    "description": "EU PSD3 frictionless threshold precisely at limit (amount 30.0 EUR, passes clean)",
+    "payload": {
+      "id": "case_40",
+      "amount": 30.0,
+      "currency": "EUR",
+      "rail": "CARD",
+      "bank": "BARCLAYS",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "EU_PSD3"
+    },
+    "ai_proposal": {
+      "root_cause": "Gateway error",
+      "confidence": 0.95,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "IMMEDIATE_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_41",
+    "description": "Standard Indian Card transaction, passes clean with immediate retry",
+    "payload": {
+      "id": "case_41",
+      "amount": 250.0,
+      "currency": "INR",
+      "rail": "CARD",
+      "bank": "HDFC",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Gateway disconnect",
+      "confidence": 0.92,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Temporary issue, immediate retry suggested"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "IMMEDIATE_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_42",
+    "description": "Standard Indian Card transaction, passes clean with scheduled retry",
+    "payload": {
+      "id": "case_42",
+      "amount": 1000.0,
+      "currency": "INR",
+      "rail": "CARD",
+      "bank": "SBI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Timeout",
+      "confidence": 0.9,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 10,
+      "reasoning": "Suggested scheduled retry (Card rails do not have cooling off limits in IN_RBI, only Mandates)"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_43",
+    "description": "Standard Indian UPI transaction, passes clean with immediate retry",
+    "payload": {
+      "id": "case_43",
+      "amount": 100.0,
+      "currency": "INR",
+      "rail": "UPI",
+      "bank": "ICICI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Gateway disconnect",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry suggested"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "IMMEDIATE_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_44",
+    "description": "Standard US Netbanking transaction, passes clean with immediate retry",
+    "payload": {
+      "id": "case_44",
+      "amount": 15.0,
+      "currency": "USD",
+      "rail": "NETBANKING",
+      "bank": "CHASE",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "Transient disconnection",
+      "confidence": 0.95,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "IMMEDIATE_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_45",
+    "description": "Standard EU Card transaction below frictionless limit (passes clean)",
+    "payload": {
+      "id": "case_45",
+      "amount": 15.0,
+      "currency": "EUR",
+      "rail": "CARD",
+      "bank": "BARCLAYS",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "EU_PSD3"
+    },
+    "ai_proposal": {
+      "root_cause": "Gateway error",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "IMMEDIATE_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_46",
+    "description": "Standard Indian NetBanking transaction, passes clean with immediate retry",
+    "payload": {
+      "id": "case_46",
+      "amount": 500.0,
+      "currency": "INR",
+      "rail": "NETBANKING",
+      "bank": "AXIS",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Gateway disconnect",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry suggested"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "IMMEDIATE_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_47",
+    "description": "Standard Indian UPI transaction, passes clean with scheduled retry",
+    "payload": {
+      "id": "case_47",
+      "amount": 200.0,
+      "currency": "INR",
+      "rail": "UPI",
+      "bank": "SBI",
+      "error_code": "TIMEOUT",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Timeout",
+      "confidence": 0.9,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 15,
+      "reasoning": "Suggested scheduled retry spacing"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_48",
+    "description": "Standard US ACH transaction (R01 Insufficient funds, retry count 0, passes clean)",
+    "payload": {
+      "id": "case_48",
+      "amount": 120.0,
+      "currency": "USD",
+      "rail": "CARD",
+      "bank": "CHASE",
+      "error_code": "R01",
+      "retry_count": 0,
+      "jurisdiction": "US_NACHA"
+    },
+    "ai_proposal": {
+      "root_cause": "NSF",
+      "confidence": 0.9,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 300,
+      "reasoning": "Retry spacing is 300 minutes, which is above NACHA card limit of 240m"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_49",
+    "description": "Standard EU Card transaction precisely at frictionless limit (passes clean)",
+    "payload": {
+      "id": "case_49",
+      "amount": 30.0,
+      "currency": "EUR",
+      "rail": "CARD",
+      "bank": "BARCLAYS",
+      "error_code": "TIMEOUT",
+      "retry_count": 0,
+      "jurisdiction": "EU_PSD3"
+    },
+    "ai_proposal": {
+      "root_cause": "Timeout",
+      "confidence": 0.92,
+      "proposed_action": "SCHEDULED_RETRY",
+      "delay_minutes": 10,
+      "reasoning": "Scheduled retry"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "SCHEDULED_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  },
+  {
+    "id": "case_50",
+    "description": "Standard Indian Card transaction, passes clean with immediate retry",
+    "payload": {
+      "id": "case_50",
+      "amount": 350.0,
+      "currency": "INR",
+      "rail": "CARD",
+      "bank": "ICICI",
+      "error_code": "GATEWAY_ERROR",
+      "retry_count": 0,
+      "jurisdiction": "IN_RBI"
+    },
+    "ai_proposal": {
+      "root_cause": "Gateway timeout",
+      "confidence": 0.9,
+      "proposed_action": "IMMEDIATE_RETRY",
+      "delay_minutes": 0,
+      "reasoning": "Immediate retry suggested"
+    },
+    "bank_health_pct": 100.0,
+    "expected_action": "IMMEDIATE_RETRY",
+    "expected_status": "PASSED_CLEAN"
+  }
+]

@@ -1,0 +1,14 @@
+jurisdiction_code: US_NACHA
+name: "NACHA ACH & Card rules"
+rules:
+  max_nsf_retries: 2
+  nsf_error_codes:
+    - "NSF"
+    - "R01"
+    - "R09"
+  disallowed_retry_error_codes:
+    - "R05"
+    - "R07"
+    - "R10"
+    - "R29"
+  min_card_retry_spacing_minutes: 240
