@@ -21,6 +21,7 @@ export const App: React.FC = () => {
   const [streamSpeedMs, setStreamSpeedMs] = useState(4000);
   const [isOutageSimulated, setIsOutageSimulated] = useState(false);
   const [injectCounter, setInjectCounter] = useState(1);
+  const injectCounterRef = useRef(1);
   const activeTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   // 1. Initial Load and Jurisdiction Sync
@@ -45,66 +46,104 @@ export const App: React.FC = () => {
     // Establish WebSocket listener
     const disconnect = websocketService.connect((event) => {
       if (event.type === 'NEW_FAILURE') {
-        setInjectCounter((prev) => {
-          const nextIndex = prev + 1;
-          const freshTx = apiService.injectFailure(nextIndex, activeJurisdiction);
-          
-          // Phase 1: INGESTED / FAILED in feed
-          setTransactions((prevTxs) => {
-            const updated = [freshTx, ...prevTxs];
-            if (updated.length > 50) updated.pop();
-            return updated;
-          });
+        // Monotonic counter update without impure side-effects inside state updater
+        injectCounterRef.current += 1;
+        const nextIndex = injectCounterRef.current;
+        setInjectCounter(nextIndex);
 
-          // Focus on the newly ingested failure to highlight visual state transition
-          setSelectedTxId(freshTx.id);
-
-          const isHalted = freshTx.complianceResult?.status === 'HALTED';
-          if (isHalted) {
-            // Policy halted: stays FAILED_PERMANENTLY / HALTED
-            return nextIndex;
+        const freshTx = apiService.injectFailure(nextIndex, activeJurisdiction);
+        
+        // Phase 1: INGESTED / FAILED in feed with deduplication guard
+        setTransactions((prevTxs) => {
+          if (prevTxs.some((t) => t.id === freshTx.id)) {
+            return prevTxs; // Never insert duplicate transaction IDs
           }
+          const updated = [freshTx, ...prevTxs];
+          if (updated.length > 50) updated.pop();
+          return updated;
+        });
 
-          // Phase 2: DIAGNOSED -> RETRYING (transition after 700ms)
-          const retryTimer = setTimeout(() => {
-            setTransactions((prevTxs) =>
-              prevTxs.map((t) => (t.id === freshTx.id ? { ...t, status: 'RECOVERING' } : t))
-            );
-            apiService.updateTransactionStatus(freshTx.id, 'RECOVERING');
+        // Focus on the newly ingested failure to highlight visual state transition
+        setSelectedTxId(freshTx.id);
 
-            // Phase 3: RETRYING -> FINAL_STATUS (after 2.5 to 3.5 seconds)
-            const resolutionDelay = Math.floor(Math.random() * 1000) + 2500; // 2500-3500ms
-            const resolveTimer = setTimeout(() => {
-              const switchHealth = freshTx.bankTelemetry.switchHealthPct;
-              const isOverridden = freshTx.complianceResult?.status === 'OVERRIDDEN';
-              
-              let finalStatus: Transaction['status'] = 'RECOVERED';
-              const rand = Math.random();
+        const isHalted = freshTx.complianceResult?.status === 'HALTED';
+        if (isHalted) {
+          // Policy halted: stays FAILED_PERMANENTLY / HALTED
+          return;
+        }
 
-              if (switchHealth < 30 && !isOverridden) {
-                // Severe bank outage without secondary routing override
-                finalStatus = rand < 0.6 ? 'FAILED' : 'RECOVERED';
-              } else {
-                // High recovery likelihood (75–80% success)
-                finalStatus = rand < 0.78 ? 'RECOVERED' : 'FAILED';
-              }
+        // Honest Lifecycle: Sequential compliant retry attempts
+        const scheduleRetryAttempt = (currentAttempt: number) => {
+          const delay = Math.floor(Math.random() * 500) + 1800; // 1800-2300ms
+          const attemptTimer = setTimeout(() => {
+            const switchHealth = freshTx.bankTelemetry.switchHealthPct;
+            const isOverridden = freshTx.complianceResult?.status === 'OVERRIDDEN';
+            
+            let successChance = 0.82;
+            if (switchHealth < 30 && !isOverridden) {
+              successChance = 0.35; // Outage without secondary routing override
+            } else if (isOverridden) {
+              successChance = 0.88; // Rerouted via healthy ICICI secondary gateway
+            }
 
+            const isSuccess = Math.random() < successChance;
+
+            if (isSuccess) {
+              // Successfully recovered
               setTransactions((prevTxs) =>
                 prevTxs.map((t) =>
                   t.id === freshTx.id
-                    ? { ...t, status: finalStatus, retryCount: t.retryCount + 1 }
+                    ? { ...t, status: 'RECOVERED', retryCount: currentAttempt }
                     : t
                 )
               );
-              apiService.updateTransactionStatus(freshTx.id, finalStatus, true);
-            }, resolutionDelay);
+              apiService.updateTransactionStatus(freshTx.id, 'RECOVERED', false);
+            } else {
+              // Failed this attempt. Check if all compliant retry avenues are exhausted.
+              const isExhausted = currentAttempt >= freshTx.maxRetriesAllowed;
 
-            activeTimers.current.push(resolveTimer);
-          }, 700);
+              if (isExhausted) {
+                // All compliant retries exhausted -> only now mark FAILED
+                setTransactions((prevTxs) =>
+                  prevTxs.map((t) =>
+                    t.id === freshTx.id
+                      ? { ...t, status: 'FAILED', retryCount: currentAttempt }
+                      : t
+                  )
+                );
+                apiService.updateTransactionStatus(freshTx.id, 'FAILED', false);
+              } else {
+                // Not exhausted: remain in RECOVERING, record retry attempt, schedule next attempt
+                setTransactions((prevTxs) =>
+                  prevTxs.map((t) =>
+                    t.id === freshTx.id
+                      ? { ...t, status: 'RECOVERING', retryCount: currentAttempt }
+                      : t
+                  )
+                );
+                apiService.updateTransactionStatus(freshTx.id, 'RECOVERING', false);
 
-          activeTimers.current.push(retryTimer);
-          return nextIndex;
-        });
+                // Schedule next attempt
+                scheduleRetryAttempt(currentAttempt + 1);
+              }
+            }
+          }, delay);
+
+          activeTimers.current.push(attemptTimer);
+        };
+
+        // Phase 2: DIAGNOSED -> RETRYING (transition after 700ms)
+        const retryTimer = setTimeout(() => {
+          setTransactions((prevTxs) =>
+            prevTxs.map((t) => (t.id === freshTx.id ? { ...t, status: 'RECOVERING' } : t))
+          );
+          apiService.updateTransactionStatus(freshTx.id, 'RECOVERING');
+
+          // Begin attempt 1
+          scheduleRetryAttempt(1);
+        }, 700);
+
+        activeTimers.current.push(retryTimer);
       }
     });
 
@@ -136,7 +175,8 @@ export const App: React.FC = () => {
   const handleTriggerNonCompliantRetrySpam = () => {
     // Inject a special transaction based on active policy that will trigger a deterministic override
     let injectedTx: Transaction;
-    const newIdx = injectCounter + 1;
+    injectCounterRef.current += 1;
+    const newIdx = injectCounterRef.current;
     setInjectCounter(newIdx);
 
     if (activeJurisdiction === 'IN_RBI') {
@@ -162,8 +202,6 @@ export const App: React.FC = () => {
         retryCount: 0,
         maxRetriesAllowed: 2
       };
-      // Register failure event in the mock database state
-      apiService.injectFailure(newIdx, activeJurisdiction);
       injectedTx = {
         ...raw,
         complianceResult: {
@@ -248,8 +286,9 @@ export const App: React.FC = () => {
       };
     }
 
-    // Insert locally to the top of list
+    // Insert locally to the top of list with deduplication guard
     setTransactions((prevTxs) => {
+      if (prevTxs.some((t) => t.id === injectedTx.id)) return prevTxs;
       const updated = [injectedTx, ...prevTxs];
       if (updated.length > 50) updated.pop();
       return updated;

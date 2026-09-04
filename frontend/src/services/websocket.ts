@@ -8,17 +8,23 @@ export const websocketService = {
     currentDelayMs = ms;
     if (mockIntervalId && activeCallback) {
       clearInterval(mockIntervalId);
+      mockIntervalId = null;
       this.startMockStream(activeCallback);
     }
   },
 
   startMockStream(callback: (data: any) => void) {
+    if (mockIntervalId) {
+      clearInterval(mockIntervalId);
+      mockIntervalId = null;
+    }
     mockIntervalId = setInterval(() => {
       idCounter++;
       console.log('📡 [CascadeGuard Sim] Mock WebSocket stream event pushed.');
       callback({
         type: 'NEW_FAILURE',
-        idCounter
+        idCounter,
+        timestamp: new Date().toISOString()
       });
     }, currentDelayMs);
   },
@@ -27,6 +33,7 @@ export const websocketService = {
     activeCallback = onMessage;
     let socket: WebSocket | null = null;
     let isCleanedUp = false;
+    let reconnectTimeoutId: any = null;
 
     const initiateConnection = () => {
       if (isCleanedUp) return;
@@ -35,6 +42,10 @@ export const websocketService = {
         socket = new WebSocket('ws://localhost:8000/ws/failures');
 
         socket.onopen = () => {
+          if (isCleanedUp) {
+            socket?.close();
+            return;
+          }
           console.log('📡 [CascadeGuard WS] Connected to live backend stream.');
           if (mockIntervalId) {
             clearInterval(mockIntervalId);
@@ -43,6 +54,7 @@ export const websocketService = {
         };
 
         socket.onmessage = (event) => {
+          if (isCleanedUp) return;
           try {
             const data = JSON.parse(event.data);
             onMessage(data);
@@ -58,7 +70,7 @@ export const websocketService = {
               this.startMockStream(onMessage);
             }
             // Attempt to reconnect after 8 seconds
-            setTimeout(initiateConnection, 8000);
+            reconnectTimeoutId = setTimeout(initiateConnection, 8000);
           }
         };
 
@@ -66,9 +78,11 @@ export const websocketService = {
           // Triggers close handler
         };
       } catch (e) {
-        console.warn('⚠️ [CascadeGuard WS] Failed to open WebSocket. Initializing mock streamer fallback.');
-        if (!mockIntervalId) {
-          this.startMockStream(onMessage);
+        if (!isCleanedUp) {
+          console.warn('⚠️ [CascadeGuard WS] Failed to open WebSocket. Initializing mock streamer fallback.');
+          if (!mockIntervalId) {
+            this.startMockStream(onMessage);
+          }
         }
       }
     };
@@ -78,8 +92,16 @@ export const websocketService = {
     // Return cleanup function to unsubscribe
     return () => {
       isCleanedUp = true;
+      activeCallback = null;
+      if (reconnectTimeoutId) {
+        clearTimeout(reconnectTimeoutId);
+        reconnectTimeoutId = null;
+      }
       if (socket) {
-        socket.close();
+        try {
+          socket.close();
+        } catch {}
+        socket = null;
       }
       if (mockIntervalId) {
         clearInterval(mockIntervalId);

@@ -117,10 +117,11 @@ export const apiService = {
   updateTransactionStatus(txId: string, status: Transaction['status'], retryIncrement: boolean = false) {
     const idx = localTransactions.findIndex((t) => t.id === txId);
     if (idx !== -1) {
-      localTransactions[idx].status = status;
-      if (retryIncrement) {
-        localTransactions[idx].retryCount += 1;
-      }
+      localTransactions[idx] = {
+        ...localTransactions[idx],
+        status,
+        retryCount: retryIncrement ? localTransactions[idx].retryCount + 1 : localTransactions[idx].retryCount
+      };
     }
   },
 
@@ -156,20 +157,27 @@ export const apiService = {
     return { ...bankTelemetryState };
   },
 
-  // Locally push simulated failed transaction on demand
-  injectFailure(idIndex: number, jurisdiction: Jurisdiction): Transaction {
+  // Locally push simulated failed transaction on demand with deduplication guard
+  injectFailure(idIndex?: number, jurisdiction: Jurisdiction = 'IN_RBI'): Transaction {
     const freshFailure = generateRandomTransaction(idIndex);
     const compliance = evaluateCompliance(freshFailure, jurisdiction);
     const completedTx: Transaction = {
       ...freshFailure,
       complianceResult: compliance,
-      status: compliance.status === 'HALTED' ? 'FAILED_PERMANENTLY' : 'FAILED'
+      status: compliance.status === 'HALTED' ? 'FAILED_PERMANENTLY' : 'FAILED',
+      retryCount: 0,
+      maxRetriesAllowed: 3
     };
     
-    localTransactions.unshift(completedTx);
-    // Keep it capped at 50 to prevent memory exhaustion
-    if (localTransactions.length > 50) {
-      localTransactions.pop();
+    // Deduplicate against local volatile storage
+    const existingIdx = localTransactions.findIndex((t) => t.id === completedTx.id);
+    if (existingIdx !== -1) {
+      localTransactions[existingIdx] = completedTx;
+    } else {
+      localTransactions.unshift(completedTx);
+      if (localTransactions.length > 50) {
+        localTransactions.pop();
+      }
     }
     
     return completedTx;

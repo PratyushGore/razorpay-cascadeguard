@@ -26,9 +26,21 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<StatusTab>('ALL');
 
-  // Unified Filtering Logic with useMemo
+  // Distinct unique transactions count
+  const uniqueTotalCount = useMemo(() => {
+    const ids = new Set<string>();
+    transactions.forEach((t) => ids.add(t.id));
+    return ids.size;
+  }, [transactions]);
+
+  // Unified Filtering Logic with useMemo & Deduplication Guard
   const filteredTransactions = useMemo(() => {
+    const seenIds = new Set<string>();
     return transactions.filter((tx) => {
+      // Deduplicate by ID so no two cards with identical keys are rendered
+      if (!tx.id || seenIds.has(tx.id)) return false;
+      seenIds.add(tx.id);
+
       // 1. Status / Tab Normalization
       const rawStatus = (tx.status || '').toUpperCase();
       const rawRecoveryStatus = ((tx as any).recoveryStatus || '').toUpperCase();
@@ -378,7 +390,7 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
       
       {/* Bottom Counter Panel */}
       <div className="p-3.5 bg-[#131B2E] border-t border-slate-700/60 text-xs text-slate-400 flex items-center justify-between font-mono">
-        <span>Filtered: {filteredTransactions.length} of {transactions.length}</span>
+        <span>Filtered: {filteredTransactions.length} of {uniqueTotalCount}</span>
         <span>Telemetry Sync: OK</span>
       </div>
     </div>

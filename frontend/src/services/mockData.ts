@@ -380,8 +380,16 @@ export const initialFailures: Omit<Transaction, 'complianceResult'>[] = [
   }
 ];
 
+// Global monotonic sequence generator for collision-resistant transaction IDs
+let nextTxIdCounter = 9840;
+
+export function getNextTransactionId(): string {
+  nextTxIdCounter += 1;
+  return `txn_${nextTxIdCounter}`;
+}
+
 // Generates simulated stream of transactions
-export function generateRandomTransaction(idIndex: number): Omit<Transaction, 'complianceResult'> {
+export function generateRandomTransaction(customIdOrIndex?: number | string): Omit<Transaction, 'complianceResult'> {
   const rails: PaymentRail[] = ['UPI', 'CARD', 'MANDATE', 'NETBANKING'];
   const errorCodes: { code: ErrorCode; msg: string }[] = [
     { code: 'BAD_REQUEST_TIMEOUT', msg: 'Timeout occurred during UPI transaction.' },
@@ -411,8 +419,17 @@ export function generateRandomTransaction(idIndex: number): Omit<Transaction, 'c
   ];
   const proposedAction = proposedActions[Math.floor(Math.random() * proposedActions.length)];
 
+  let id: string;
+  if (typeof customIdOrIndex === 'string') {
+    id = customIdOrIndex;
+  } else if (typeof customIdOrIndex === 'number' && customIdOrIndex >= 9800) {
+    id = `txn_${customIdOrIndex}`;
+  } else {
+    id = getNextTransactionId();
+  }
+
   return {
-    id: `txn_${9800 + idIndex}`,
+    id,
     timestamp: new Date().toISOString(),
     amount,
     currency,
