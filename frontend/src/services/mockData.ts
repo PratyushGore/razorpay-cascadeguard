@@ -456,6 +456,7 @@ export function generateAuditHistory(transactions: Transaction[]): AuditEntry[] 
   const list: AuditEntry[] = [];
   transactions.forEach((tx) => {
     const timeBase = new Date(tx.timestamp).getTime();
+    if (isNaN(timeBase)) return; // skip malformed/incomplete transaction records instead of crashing the whole app
     
     // Stage 1: INGESTED
     list.push({

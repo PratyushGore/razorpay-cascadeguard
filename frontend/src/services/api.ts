@@ -32,13 +32,13 @@ export const apiService = {
       return data;
     } catch (e) {
       console.warn('⚠️ [CascadeGuard API] Backend offline. Falling back to local high-fidelity state.');
-      
+
       // Update compliance results dynamically for current local state based on active jurisdiction
       localTransactions = localTransactions.map((tx) => {
         const telemetry = bankTelemetryState[tx.bankTelemetry.bankName] || tx.bankTelemetry;
         const txUpdatedTelemetry = { ...tx, bankTelemetry: telemetry };
         const complianceResult = evaluateCompliance(txUpdatedTelemetry, jurisdiction);
-        
+
         // Adjust status if halted or unhalted
         let status = tx.status;
         if (complianceResult.status === 'HALTED') {
@@ -46,7 +46,7 @@ export const apiService = {
         } else if (status === 'FAILED_PERMANENTLY') {
           status = 'FAILED';
         }
-        
+
         return {
           ...txUpdatedTelemetry,
           complianceResult,
@@ -70,33 +70,33 @@ export const apiService = {
       return data;
     } catch (e) {
       console.warn(`⚠️ [CascadeGuard API] Backend offline. Running local recovery loop for ${txId}.`);
-      
+
       const idx = localTransactions.findIndex((t) => t.id === txId);
       if (idx === -1) throw new Error('Transaction not found');
-      
+
       const tx = localTransactions[idx];
-      
+
       // Update switch telemetry at trigger time
       const telemetry = bankTelemetryState[tx.bankTelemetry.bankName] || tx.bankTelemetry;
       tx.bankTelemetry = telemetry;
-      
+
       // Re-run compliance validation
       const comp = evaluateCompliance(tx, jurisdiction);
       tx.complianceResult = comp;
       tx.retryCount += 1;
-      
+
       if (comp.status === 'HALTED') {
         tx.status = 'FAILED_PERMANENTLY';
       } else {
         tx.status = 'RECOVERING';
-        
+
         // Simulate background recovery resolution
         setTimeout(() => {
           const finalIdx = localTransactions.findIndex((t) => t.id === txId);
           if (finalIdx !== -1) {
             const currentTx = localTransactions[finalIdx];
             const activeTelemetry = bankTelemetryState[currentTx.bankTelemetry.bankName];
-            
+
             if (activeTelemetry.status === 'HEALTHY' || currentTx.complianceResult?.status === 'OVERRIDDEN') {
               currentTx.status = 'RECOVERED';
             } else if (activeTelemetry.status === 'DEGRADED') {
@@ -108,7 +108,7 @@ export const apiService = {
           }
         }, 2500);
       }
-      
+
       localTransactions[idx] = { ...tx };
       return { ...tx };
     }
@@ -168,7 +168,7 @@ export const apiService = {
       retryCount: 0,
       maxRetriesAllowed: 3
     };
-    
+
     // Deduplicate against local volatile storage
     const existingIdx = localTransactions.findIndex((t) => t.id === completedTx.id);
     if (existingIdx !== -1) {
@@ -179,7 +179,7 @@ export const apiService = {
         localTransactions.pop();
       }
     }
-    
+
     return completedTx;
   },
 
@@ -200,7 +200,7 @@ export const apiService = {
       return await response.json();
     } catch (e) {
       console.warn('⚠️ [CascadeGuard API] Backend offline. Simulating 50-case benchmark locally.');
-      
+
       const detailsList = [];
       let passedClean = 0;
       let overridden = 0;
