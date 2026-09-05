@@ -19,25 +19,25 @@ export const AuditLedgerTable: React.FC<AuditLedgerTableProps> = ({ auditEntries
     switch (stage) {
       case 'INGESTED':
         return (
-          <span className="px-2.5 py-1 rounded bg-slate-900 border border-slate-705 text-xs font-semibold text-slate-400 font-mono">
+          <span className="px-2.5 py-1 rounded bg-[#070C18] border border-[#1B2C4B] text-xs font-semibold text-slate-400 font-mono">
             INGESTED
           </span>
         );
       case 'DIAGNOSED':
         return (
-          <span className="px-2.5 py-1 rounded bg-sky-950/40 border border-sky-850/50 text-xs font-semibold text-sky-400 font-mono">
+          <span className="px-2.5 py-1 rounded bg-[#012652] border border-[#0D94FB]/40 text-xs font-semibold text-[#0D94FB] font-mono">
             DIAGNOSED
           </span>
         );
       case 'GATED':
         return (
-          <span className="px-2.5 py-1 rounded bg-amber-950/40 border border-amber-850/50 text-xs font-semibold text-amber-400 font-mono">
+          <span className="px-2.5 py-1 rounded bg-amber-950/40 border border-amber-800/50 text-xs font-semibold text-amber-400 font-mono">
             GATED
           </span>
         );
       case 'DISPATCHED':
         return (
-          <span className="px-2.5 py-1 rounded bg-sky-950/40 border border-sky-700/50 text-xs font-semibold text-sky-400 font-mono">
+          <span className="px-2.5 py-1 rounded bg-[#012652] border border-[#0D94FB]/50 text-xs font-semibold text-[#0D94FB] font-mono">
             DISPATCHED
           </span>
         );
@@ -58,16 +58,16 @@ export const AuditLedgerTable: React.FC<AuditLedgerTableProps> = ({ auditEntries
     
     if (lower.includes('halted') || lower.includes('failed_permanently')) {
       return (
-        <span className="flex items-center gap-1.5 text-xs font-semibold text-rose-455 font-mono">
-          <ShieldX className="w-4 h-4 text-rose-455" /> HALTED
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-rose-400 font-mono">
+          <ShieldX className="w-4 h-4 text-rose-400" /> HALTED
         </span>
       );
     }
     
     if (lower.includes('override') || lower.includes('overridden')) {
       return (
-        <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-405 font-mono">
-          <AlertTriangle className="w-4 h-4 text-amber-500" /> OVERRIDDEN
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 font-mono">
+          <AlertTriangle className="w-4 h-4 text-amber-400" /> OVERRIDDEN
         </span>
       );
     }
@@ -75,7 +75,7 @@ export const AuditLedgerTable: React.FC<AuditLedgerTableProps> = ({ auditEntries
     if (lower.includes('passed') || lower.includes('clean') || lower.includes('dispatching')) {
       return (
         <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400 font-mono">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500" /> APPROVED
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" /> APPROVED
         </span>
       );
     }
@@ -97,75 +97,75 @@ export const AuditLedgerTable: React.FC<AuditLedgerTableProps> = ({ auditEntries
   };
 
   return (
-    <div className="bg-[#131B2E] border border-slate-700/60 rounded-md overflow-hidden flex flex-col h-[320px]">
+    <div className="bg-[#0B1426] border border-[#1B2C4B] rounded-lg overflow-hidden flex flex-col h-[320px] shadow-sm">
       
       {/* Header and Search */}
-      <div className="p-4 border-b border-slate-700 bg-[#131B2E] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="p-3.5 border-b border-[#1B2C4B] bg-[#012652]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Database className="w-4 h-4 text-slate-400" />
+          <Database className="w-4 h-4 text-[#0D94FB]" />
           <div>
-            <h2 className="text-base font-semibold text-slate-100 flex items-center gap-2 font-mono">
+            <h2 className="text-sm font-bold text-white flex items-center gap-2 font-mono">
               Cryptographic Audit Ledger
-              <span className="flex items-center gap-1 text-xs font-bold px-2.5 py-1 bg-[#0B0F17] text-slate-300 border border-slate-700/60 rounded">
+              <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 bg-[#070C18] text-slate-300 border border-[#1B2C4B] rounded">
                 <Lock className="w-3 h-3 text-slate-400" /> SHA-256
               </span>
             </h2>
-            <p className="text-xs text-slate-400">Deterministic compliance chain verification ledger</p>
+            <p className="text-[11px] text-slate-400">Deterministic compliance chain verification ledger</p>
           </div>
         </div>
 
         {/* Search */}
         <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
           <input
             type="text"
             placeholder="Filter ledger by TxID / Hash..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#0B0F17] border border-slate-700/60 rounded pl-8 pr-3 py-1.5 text-xs text-slate-350 placeholder-slate-500 focus:outline-none focus:border-indigo-650"
+            className="w-full bg-[#070C18] border border-[#1B2C4B] rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#0D94FB]"
           />
         </div>
       </div>
 
       {/* Table Body */}
-      <div className="flex-1 overflow-auto bg-[#0B0F17]">
+      <div className="flex-1 overflow-auto bg-[#070C18]">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-[#131B2E] text-slate-400 text-xs uppercase font-semibold sticky top-0 border-b border-slate-700 z-10">
+          <thead className="bg-[#012652]/40 text-slate-300 text-xs uppercase font-semibold sticky top-0 border-b border-[#1B2C4B] z-10">
             <tr>
-              <th className="py-3.5 px-4 pl-4 w-36"><span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-slate-400" /> Timestamp</span></th>
-              <th className="py-3.5 px-4 w-32">TxID</th>
-              <th className="py-3.5 px-4 w-36">Stage</th>
-              <th className="py-3.5 px-4 w-32">Compliance</th>
-              <th className="py-3.5 px-4">Block Verification Hash</th>
-              <th className="py-3.5 px-4 pr-4">Transition Details</th>
+              <th className="py-3 px-4 pl-4 w-36"><span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-slate-400" /> Timestamp</span></th>
+              <th className="py-3 px-4 w-32">TxID</th>
+              <th className="py-3 px-4 w-36">Stage</th>
+              <th className="py-3 px-4 w-32">Compliance</th>
+              <th className="py-3 px-4">Block Verification Hash</th>
+              <th className="py-3 px-4 pr-4">Transition Details</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-850 bg-[#0B0F17] font-mono text-xs md:text-sm text-slate-200">
+          <tbody className="divide-y divide-[#1B2C4B] bg-[#070C18] font-mono text-xs md:text-sm text-slate-200">
             {filteredEntries.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-12 text-slate-405 text-sm font-mono">
+                <td colSpan={6} className="text-center py-12 text-slate-400 text-sm font-mono">
                   No cryptographic blocks recorded in current ledger.
                 </td>
               </tr>
             ) : (
               filteredEntries.map((entry) => (
-                <tr key={entry.id} className="hover:bg-slate-800/10">
-                  <td className="py-3.5 px-4 pl-4 text-slate-400 font-mono tracking-tight tabular-nums">
+                <tr key={entry.id} className="hover:bg-[#0B1426]/50">
+                  <td className="py-3 px-4 pl-4 text-slate-400 font-mono tracking-tight tabular-nums text-xs">
                     {formatTimestamp(entry.timestamp)}
                   </td>
-                  <td className="py-3.5 px-4 font-bold text-slate-200">
+                  <td className="py-3 px-4 font-bold text-white text-xs">
                     {entry.txId}
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3 px-4">
                     {getStageBadge(entry.stage)}
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3 px-4">
                     {getComplianceStatusBadge(entry.details)}
                   </td>
-                  <td className="py-3.5 px-4 text-indigo-400 hover:text-indigo-350 font-mono tracking-tight tabular-nums truncate max-w-[200px]" title={entry.blockHash}>
+                  <td className="py-3 px-4 text-[#0D94FB] font-mono tracking-tight tabular-nums truncate max-w-[200px] text-xs" title={entry.blockHash}>
                     {entry.blockHash.slice(0, 18)}...
                   </td>
-                  <td className="py-3.5 px-4 pr-4 text-slate-200 truncate max-w-[320px] font-mono" title={entry.details}>
+                  <td className="py-3 px-4 pr-4 text-slate-300 truncate max-w-[320px] font-mono text-xs" title={entry.details}>
                     {entry.details}
                   </td>
                 </tr>
@@ -176,7 +176,7 @@ export const AuditLedgerTable: React.FC<AuditLedgerTableProps> = ({ auditEntries
       </div>
 
       {/* Footer statistics */}
-      <div className="p-3 bg-[#131B2E] border-t border-slate-700/60 text-xs text-slate-400 flex items-center justify-between font-mono">
+      <div className="p-3 bg-[#012652]/30 border-t border-[#1B2C4B] text-xs text-slate-400 flex items-center justify-between font-mono">
         <span>Recorded blocks: {auditEntries.length}</span>
         <span>Secure Hash: SHA-256</span>
       </div>

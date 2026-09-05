@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Header, HTTPException, Depends
-from sqlmodel import Session, select
+from sqlmodel import Session, select, col
 from typing import Dict, Any, Optional
 from datetime import datetime, timezone
 import json
@@ -119,11 +119,15 @@ async def handle_razorpay_webhook(
     body = await request.body()
     body_str = body.decode("utf-8")
     
-    # Validate signature if present
-    if signature and settings.SECRET_KEY:
-        is_valid = verify_razorpay_signature(body_str, signature, settings.SECRET_KEY)
-        if not is_valid:
-            raise HTTPException(status_code=401, detail="Invalid signature")
+    # Reject request if signature header is missing (fail closed)
+    if not signature:
+        raise HTTPException(status_code=401, detail="Missing X-Razorpay-Signature header")
+
+    # Validate webhook signature
+    webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET if settings.RAZORPAY_WEBHOOK_SECRET else settings.SECRET_KEY
+    is_valid = verify_razorpay_signature(body_str, signature, webhook_secret)
+    if not is_valid:
+        raise HTTPException(status_code=401, detail="Invalid signature")
 
     try:
         data = json.loads(body_str)
@@ -170,7 +174,7 @@ async def handle_razorpay_webhook(
     # 7. Write to Audit Ledger with cryptographic chain integrity
     # Retrieve previous block hash
     prev_entry = db.exec(
-        select(AuditLedgerEntry).order_by(AuditLedgerEntry.id.desc())
+        select(AuditLedgerEntry).order_by(col(AuditLedgerEntry.id).desc())
     ).first()
     
     previous_hash = prev_entry.block_hash if prev_entry else "0" * 64

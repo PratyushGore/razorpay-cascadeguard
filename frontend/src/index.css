@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-[#0B0F17] text-slate-300 text-sm antialiased font-sans overflow-x-hidden;
+    @apply bg-[#070C18] text-slate-300 text-sm antialiased font-sans overflow-x-hidden;
   }
 }
 
@@ -15,15 +15,15 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0B0F17;
+  background: #070C18;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
+  background: #1B2C4B;
   border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #0D94FB;
 }
 

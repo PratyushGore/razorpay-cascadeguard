@@ -8,17 +8,28 @@ export default {
     extend: {
       colors: {
         fintech: {
-          bg: '#080C14',        // Deepest dark background
-          panel: '#0F172A',     // Dark slate panel background
-          card: '#1E293B',      // Card/elevated background
-          border: '#334155',    // Muted slate border
-          primary: '#6366F1',   // Indigo primary brand
-          accent: '#06B6D4',    // Cyan accent
+          bg: '#070C18',        // Deep fintech dark background
+          panel: '#0B1426',     // Dense dark navy panel background
+          card: '#0F1A30',      // Elevated card surface
+          header: '#012652',    // Deep Prussian Blue header/high-emphasis
+          border: '#1B2C4B',    // Crisp muted fintech border
+          primary: '#0D94FB',   // Dodger Blue primary brand
+          primaryHover: '#0B7FE0',
+          accent: '#0D94FB',    // Dodger Blue accent
         },
+        razorpay: {
+          blue: '#0D94FB',      // Dodger Blue
+          blueHover: '#0B7FE0',
+          prussian: '#012652',  // Prussian Blue
+          navy: '#0B1426',
+          card: '#0F1A30',
+          dark: '#070C18',
+          border: '#1B2C4B',
+        }
       },
       fontFamily: {
-        sans: ['Outfit', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        sans: ['"Geist Sans"', 'Geist', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'Fira Code', 'monospace'],
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

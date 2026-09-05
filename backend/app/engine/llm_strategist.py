@@ -112,7 +112,7 @@ def generate_recovery_strategy(transaction: TransactionPayload, diagnosis: Failu
     If the API key is not configured, or call fails, falls back to the deterministic rule engine.
     """
     api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key or api_key == "change_me" or api_key == "":
+    if not api_key or api_key.strip() in ("", "change_me", "PASTE_YOUR_GEMINI_KEY_HERE"):
         return _get_deterministic_fallback(transaction, diagnosis)
 
     try:
@@ -149,7 +149,7 @@ def generate_recovery_strategy(transaction: TransactionPayload, diagnosis: Failu
         """
         
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",

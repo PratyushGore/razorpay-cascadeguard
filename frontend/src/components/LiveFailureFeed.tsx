@@ -218,15 +218,15 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
   };
 
   return (
-    <div className="bg-[#131B2E] border border-slate-700/60 rounded-md flex flex-col h-[calc(100vh-170px)] overflow-hidden">
+    <div className="bg-[#0B1426] border border-[#1B2C4B] rounded-lg flex flex-col h-[calc(100vh-170px)] overflow-hidden shadow-sm">
       {/* Feed Title & Streaming Control */}
-      <div className="p-4 border-b border-slate-700 bg-[#131B2E] flex items-center justify-between">
+      <div className="p-3.5 border-b border-[#1B2C4B] bg-[#012652]/30 flex items-center justify-between">
         <div>
-          <h2 className="text-base font-semibold tracking-tight text-slate-100 flex items-center gap-1.5">
+          <h2 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
             Live Failure Feed
           </h2>
-          <p className="text-xs tracking-wide uppercase font-semibold text-slate-400 mt-1">Real-time webhook ingestion pipeline</p>
+          <p className="text-[11px] tracking-wide uppercase font-semibold text-slate-400 mt-0.5">Real-time webhook ingestion pipeline</p>
         </div>
         
         <div className="flex items-center gap-2">
@@ -236,7 +236,7 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
             <select
               value={streamSpeedMs}
               onChange={(e) => onChangeStreamSpeed(Number(e.target.value))}
-              className="bg-[#0B0F17] border border-slate-700 text-slate-200 rounded px-1.5 py-1 text-[11px] focus:outline-none focus:border-indigo-650"
+              className="bg-[#070C18] border border-[#1B2C4B] text-slate-200 rounded px-1.5 py-1 text-[11px] focus:outline-none focus:border-[#0D94FB]"
             >
               <option value={1000}>1s</option>
               <option value={2000}>2s</option>
@@ -250,7 +250,7 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
             className={`flex items-center gap-1 h-8 px-3 text-xs font-semibold rounded border transition-colors ${
               isAutoStreaming
                 ? 'bg-amber-950/40 border-amber-700/60 text-amber-400 hover:bg-amber-950/60'
-                : 'bg-indigo-950/40 border-indigo-700/60 text-indigo-400 hover:bg-indigo-950/60'
+                : 'bg-[#012652] border border-[#0D94FB]/60 text-[#0D94FB] hover:bg-[#012652]/80'
             }`}
           >
             {isAutoStreaming ? (
@@ -267,7 +267,7 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
       </div>
 
       {/* Filters & Search */}
-      <div className="p-3 border-b border-slate-700 bg-[#131B2E] space-y-2.5">
+      <div className="p-3 border-b border-[#1B2C4B] bg-[#0B1426] space-y-2.5">
         <div className="relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
           <input
@@ -275,7 +275,7 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
             placeholder="Search TxID, customer, error, bank, rail, amount..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#0B0F17] border border-slate-700/60 rounded pl-9 pr-8 py-2 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:border-indigo-600 transition-colors"
+            className="w-full bg-[#070C18] border border-[#1B2C4B] rounded pl-9 pr-8 py-2 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:border-[#0D94FB] transition-colors"
           />
           {searchQuery && (
             <button
@@ -289,14 +289,14 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
         </div>
 
         {/* Segmented Filter Control */}
-        <div className="flex p-0.5 bg-[#0B0F17] border border-slate-700 rounded overflow-x-auto scrollbar-none">
+        <div className="flex p-0.5 bg-[#070C18] border border-[#1B2C4B] rounded overflow-x-auto scrollbar-none">
           {(['ALL', 'FAILED', 'RECOVERING', 'RECOVERED', 'HALTED'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`text-xs flex-1 py-1.5 px-2 text-center rounded font-semibold uppercase tracking-wide whitespace-nowrap transition-colors ${
                 activeTab === tab
-                  ? 'bg-[#1E293B] text-slate-100 shadow-sm border border-slate-650'
+                  ? 'bg-[#012652] text-white shadow-sm border border-[#0D94FB]/60'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -307,10 +307,10 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
       </div>
 
       {/* List container */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-[#0B0F17]">
+      <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-[#070C18]">
         {filteredTransactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-12 px-4 space-y-2">
-            <div className="p-2.5 rounded-full bg-slate-900 border border-slate-800 text-slate-500">
+            <div className="p-2.5 rounded-full bg-[#0B1426] border border-[#1B2C4B] text-slate-500">
               <Search className="w-5 h-5" />
             </div>
             <span className="text-sm font-semibold text-slate-300 font-mono">
@@ -327,7 +327,7 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
                   setSearchQuery('');
                   setActiveTab('ALL');
                 }}
-                className="mt-2 text-xs font-semibold px-3 py-1 rounded bg-indigo-950/60 border border-indigo-700/60 text-indigo-300 hover:bg-indigo-900/60 transition-colors"
+                className="mt-2 text-xs font-semibold px-3 py-1 rounded bg-[#012652] border border-[#0D94FB]/60 text-[#0D94FB] hover:bg-[#012652]/80 transition-colors"
               >
                 Reset Filters
               </button>
@@ -340,12 +340,12 @@ export const LiveFailureFeed: React.FC<LiveFailureFeedProps> = ({
               <div
                 key={tx.id}
                 onClick={() => onSelectTransaction(tx.id)}
-                className={`bg-[#131B2E] border border-slate-700/60 p-3.5 rounded border-l-2 ${getStatusColor(
+                className={`bg-[#0B1426] border border-[#1B2C4B] p-3.5 rounded-lg border-l-4 ${getStatusColor(
                   tx
                 )} cursor-pointer select-none transition-colors ${
                   isSelected
-                    ? 'bg-slate-800/20 border-slate-650/80 border-l-indigo-500'
-                    : 'hover:bg-slate-800/10'
+                    ? 'bg-[#0F1A30] border-slate-500 border-l-[#0D94FB]'
+                    : 'hover:bg-[#0F1A30]/60'
                 }`}
               >
                 {/* Header Row */}

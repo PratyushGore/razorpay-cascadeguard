@@ -46,12 +46,18 @@ export const App: React.FC = () => {
     // Establish WebSocket listener
     const disconnect = websocketService.connect((event) => {
       if (event.type === 'NEW_FAILURE') {
-        // Monotonic counter update without impure side-effects inside state updater
-        injectCounterRef.current += 1;
-        const nextIndex = injectCounterRef.current;
-        setInjectCounter(nextIndex);
+        let freshTx: Transaction;
 
-        const freshTx = apiService.injectFailure(nextIndex, activeJurisdiction);
+        if (event.data && typeof event.data === 'object' && event.data.id) {
+          // Consume directly from backend live WebSocket stream
+          freshTx = event.data as Transaction;
+        } else {
+          // Fallback when running offline mock streamer
+          injectCounterRef.current += 1;
+          const nextIndex = injectCounterRef.current;
+          setInjectCounter(nextIndex);
+          freshTx = apiService.injectFailure(nextIndex, activeJurisdiction);
+        }
         
         // Phase 1: INGESTED / FAILED in feed with deduplication guard
         setTransactions((prevTxs) => {
@@ -358,22 +364,22 @@ export const App: React.FC = () => {
   const selectedTransaction = transactions.find((t) => t.id === selectedTxId) || null;
 
   return (
-    <div className="min-h-screen bg-[#0B0F17] text-slate-300 flex flex-col p-4 sm:p-6 select-none font-sans">
+    <div className="min-h-screen bg-[#070C18] text-slate-300 flex flex-col p-4 sm:p-6 select-none font-sans">
       
       {/* Header Bar */}
-      <header className="flex items-center justify-between mb-6 border-b border-slate-800/80 pb-4">
+      <header className="flex items-center justify-between mb-6 border-b border-[#1B2C4B] pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#131B2E] border border-slate-800 rounded-md text-indigo-400">
+          <div className="p-2.5 bg-[#012652] border border-[#0D94FB]/40 rounded-lg text-[#0D94FB] shadow-sm">
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
             <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2 leading-none mb-1">
               CascadeGuard
-              <span className="text-[10px] uppercase font-mono tracking-wider px-2 py-0.5 rounded bg-slate-900 border border-slate-850 text-slate-400">
+              <span className="text-[10px] uppercase font-mono tracking-wider px-2 py-0.5 rounded bg-[#0B1426] border border-[#1B2C4B] text-[#0D94FB]">
                 Sentinel Engine v2.5
               </span>
             </h1>
-            <p className="text-xs text-slate-500">Razorpay Autonomous Revenue Recovery & Regulatory Gatekeeper</p>
+            <p className="text-xs text-slate-400">Razorpay Autonomous Revenue Recovery & Regulatory Gatekeeper</p>
           </div>
         </div>
 
@@ -382,7 +388,7 @@ export const App: React.FC = () => {
           <div>
             <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500 block mb-0.5">AI Engine</span>
             <span className="font-mono text-xs text-slate-300 flex items-center justify-end gap-1">
-              <Cpu className="w-3.5 h-3.5 text-slate-400" /> Gemini 3.5 Flash
+              <Cpu className="w-3.5 h-3.5 text-[#0D94FB]" /> Gemini 2.5 Flash
             </span>
           </div>
           <div>

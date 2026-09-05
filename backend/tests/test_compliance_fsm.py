@@ -444,3 +444,74 @@ def test_benchmark_endpoint():
         # Verify we returned exactly 50 case results
         assert len(data["results"]) == 50
 
+def test_webhook_signature_secret_selection_and_endpoint():
+    """
+    Test that webhook signature checks settings.RAZORPAY_WEBHOOK_SECRET when set,
+    falls back to settings.SECRET_KEY when blank, and that /api/v1/webhooks/razorpay
+    fails closed (401) when X-Razorpay-Signature is missing.
+    """
+    import hmac
+    import hashlib
+    import json
+    from fastapi.testclient import TestClient
+    from backend.main import app
+    from backend.app.core.config import settings
+
+    payload = json.dumps({
+        "id": "pay_test_sig_123",
+        "amount": 1500,
+        "currency": "INR",
+        "rail": "UPI",
+        "bank": "HDFC",
+        "error_code": "U30"
+    })
+
+    # 1. When RAZORPAY_WEBHOOK_SECRET is set, it takes precedence over SECRET_KEY
+    settings.RAZORPAY_WEBHOOK_SECRET = "specific_webhook_secret_key"
+    settings.SECRET_KEY = "fallback_secret_key"
+    
+    correct_sig = hmac.new(b"specific_webhook_secret_key", payload.encode(), hashlib.sha256).hexdigest()
+    fallback_sig = hmac.new(b"fallback_secret_key", payload.encode(), hashlib.sha256).hexdigest()
+    
+    assert verify_razorpay_signature(payload, correct_sig) is True
+    assert verify_razorpay_signature(payload, fallback_sig) is False
+
+    # 2. When RAZORPAY_WEBHOOK_SECRET is blank, it falls back to SECRET_KEY
+    settings.RAZORPAY_WEBHOOK_SECRET = ""
+    assert verify_razorpay_signature(payload, fallback_sig) is True
+
+    # 3. Test HTTP endpoint fails closed when signature is missing
+    with TestClient(app) as client:
+        # Missing signature -> 401
+        res_missing = client.post(
+            "/api/v1/webhooks/razorpay",
+            content=payload,
+            headers={"Content-Type": "application/json"}
+        )
+        assert res_missing.status_code == 401
+        assert "Missing X-Razorpay-Signature header" in res_missing.json()["detail"]
+
+        # Invalid signature -> 401
+        res_invalid = client.post(
+            "/api/v1/webhooks/razorpay",
+            content=payload,
+            headers={
+                "Content-Type": "application/json",
+                "X-Razorpay-Signature": "totally_invalid_signature"
+            }
+        )
+        assert res_invalid.status_code == 401
+        assert "Invalid signature" in res_invalid.json()["detail"]
+
+        # Valid signature with fallback key -> 200
+        res_valid = client.post(
+            "/api/v1/webhooks/razorpay",
+            content=payload,
+            headers={
+                "Content-Type": "application/json",
+                "X-Razorpay-Signature": fallback_sig
+            }
+        )
+        assert res_valid.status_code == 200
+        assert "action" in res_valid.json()
+

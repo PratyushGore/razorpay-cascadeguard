@@ -101,25 +101,25 @@ export const ComplianceMatrix: React.FC<ComplianceMatrixProps> = ({
   };
 
   return (
-    <div className="bg-[#131B2E] border border-slate-700/60 rounded-md flex flex-col h-[calc(100vh-170px)] overflow-hidden">
+    <div className="bg-[#0B1426] border border-[#1B2C4B] rounded-lg flex flex-col h-[calc(100vh-170px)] overflow-hidden shadow-sm">
       {/* Header */}
-      <div className="p-4 border-b border-slate-700 bg-[#131B2E]">
-        <h2 className="text-base font-semibold tracking-tight text-slate-100 flex items-center gap-1.5">
-          <Scale className="w-4 h-4 text-slate-405" />
+      <div className="p-3.5 border-b border-[#1B2C4B] bg-[#012652]/30">
+        <h2 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+          <Scale className="w-4 h-4 text-[#0D94FB]" />
           Compliance Gatekeeper
         </h2>
-        <p className="text-xs tracking-wide uppercase font-semibold text-slate-400 mt-1">Deterministic Multi-Jurisdiction Guardrails</p>
+        <p className="text-[11px] tracking-wide uppercase font-semibold text-slate-400 mt-0.5">Deterministic Multi-Jurisdiction Guardrails</p>
       </div>
 
       {/* Jurisdiction Switcher */}
-      <div className="p-3 bg-[#131B2E] border-b border-slate-700">
+      <div className="p-3 bg-[#0B1426] border-b border-[#1B2C4B]">
         <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1">
           Regulatory Jurisdiction
         </label>
         <select
           value={selectedJurisdiction}
           onChange={(e) => onChangeJurisdiction(e.target.value as Jurisdiction)}
-          className="w-full bg-[#0B0F17] border border-slate-700/60 rounded h-10 text-sm font-medium px-3 focus:outline-none focus:border-indigo-650 text-slate-200"
+          className="w-full bg-[#070C18] border border-[#1B2C4B] rounded h-9 text-xs font-semibold px-3 focus:outline-none focus:border-[#0D94FB] text-slate-200"
         >
           <option value="IN_RBI">India - Reserve Bank of India (RBI)</option>
           <option value="US_NACHA">United States - NACHA ACH Network</option>
@@ -128,7 +128,7 @@ export const ComplianceMatrix: React.FC<ComplianceMatrixProps> = ({
       </div>
 
       {/* Inspector Details */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0B0F17]">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#070C18]">
         {!transaction ? (
           /* Summary Rules View when no Tx selected */
           <div className="space-y-3">
@@ -137,15 +137,15 @@ export const ComplianceMatrix: React.FC<ComplianceMatrixProps> = ({
             </span>
             <div className="space-y-2.5">
               {activeRules.map((rule) => (
-                <div key={rule.id} className="bg-[#131B2E] border border-slate-700/60 rounded p-3.5">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <Shield className="w-3.5 h-3.5 text-indigo-400" />
-                    <span className="text-sm font-bold text-slate-100">{rule.name}</span>
+                <div key={rule.id} className="bg-[#0B1426] border border-[#1B2C4B] rounded-lg p-3.5">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Shield className="w-3.5 h-3.5 text-[#0D94FB]" />
+                    <span className="text-xs font-bold text-white">{rule.name}</span>
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed mb-2.5">
                     {rule.description}
                   </p>
-                  <span className="text-xs bg-[#0B0F17] px-2 py-0.5 border border-slate-700/60 text-indigo-400 font-mono rounded">
+                  <span className="text-[11px] bg-[#070C18] px-2 py-0.5 border border-[#1B2C4B] text-[#0D94FB] font-mono rounded">
                     Ref: {rule.legalReference}
                   </span>
                 </div>
@@ -157,14 +157,14 @@ export const ComplianceMatrix: React.FC<ComplianceMatrixProps> = ({
           <div className="space-y-4">
             {/* 1. Gatekeeper Status Banner */}
             {transaction.complianceResult && (
-              <div className={`px-4 py-2 rounded border flex items-center justify-between text-sm font-bold tracking-wide ${getStatusBannerClass(transaction.complianceResult.status)}`}>
+              <div className={`px-3.5 py-2.5 rounded-lg border flex items-center justify-between text-xs font-bold tracking-wide ${getStatusBannerClass(transaction.complianceResult.status)}`}>
                 <div className="flex items-center gap-2">
                   {getStatusIcon(transaction.complianceResult.status)}
                   <div>
-                    <span className="text-xs uppercase font-bold tracking-wider block leading-none mb-1">
+                    <span className="text-[10px] uppercase font-bold tracking-wider block leading-none mb-0.5 opacity-80">
                       Gatekeeper Evaluation
                     </span>
-                    <span className="text-sm font-bold font-mono tracking-wide">
+                    <span className="text-xs font-bold font-mono tracking-wide">
                       {transaction.complianceResult.status === 'PASSED_CLEAN'
                         ? 'PASSED_CLEAN'
                         : transaction.complianceResult.status === 'OVERRIDDEN'
@@ -176,59 +176,75 @@ export const ComplianceMatrix: React.FC<ComplianceMatrixProps> = ({
               </div>
             )}
 
-            {/* 2. Side-by-side comparison */}
-            <div className="grid grid-cols-1 gap-2.5">
-              {/* Left pane: AI Recommendation */}
-              <div className="border border-sky-750/70 bg-sky-950/40 p-3.5 rounded">
-                <span className="text-xs text-sky-400 font-bold uppercase tracking-wider block mb-1">
-                  AI Proposed Action
-                </span>
-                <p className="text-sm text-slate-200 font-semibold mb-1">
-                  {transaction.aiDiagnosis.proposedAction}
+            {/* 2. Side-by-side comparison with high-contrast distinct labeling */}
+            <div className="space-y-2.5">
+              {/* Step 1: AI Recommendation */}
+              <div className="border-2 border-[#0D94FB]/50 bg-[#012652]/25 p-3.5 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#0D94FB]/20 text-[#0D94FB] border border-[#0D94FB]/30">
+                    STEP 1 — AI PROPOSAL (Non-Deterministic)
+                  </span>
+                  <span className="text-[10px] font-mono text-[#0D94FB] font-semibold">
+                    Conf: {transaction.aiDiagnosis.confidenceScore}%
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-white leading-relaxed">
+                  "{transaction.aiDiagnosis.proposedAction}"
                 </p>
-                <span className="text-xs text-sky-400 font-mono">
-                  Confidence: {transaction.aiDiagnosis.confidenceScore}%
+              </div>
+
+              {/* Transition Indicator */}
+              <div className="flex items-center justify-center gap-2 py-0.5">
+                <div className="h-px flex-1 bg-[#1B2C4B]"></div>
+                <span className="text-[9px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-[#0B1426] border border-[#1B2C4B] text-slate-400">
+                  Passed to Rulebook FSM ↓
                 </span>
+                <div className="h-px flex-1 bg-[#1B2C4B]"></div>
               </div>
 
-              {/* Arrow spacer */}
-              <div className="flex justify-center text-slate-700 py-1">
-                <ArrowRight className="w-4 h-4 rotate-90" />
-              </div>
-
-              {/* Right pane: Compliance Rule Engine */}
-              <div className={`p-3.5 rounded border ${
+              {/* Step 2: Compliance Rule Engine */}
+              <div className={`p-3.5 rounded-lg border-2 shadow-sm ${
                 transaction.complianceResult?.status === 'PASSED_CLEAN'
-                  ? 'border-emerald-700/60 bg-emerald-950/40 text-emerald-400'
+                  ? 'border-emerald-500/70 bg-emerald-950/30 text-emerald-300'
                   : transaction.complianceResult?.status === 'OVERRIDDEN'
-                  ? 'border-amber-700/60 bg-amber-950/40 text-amber-400'
-                  : 'border-rose-700/60 bg-rose-950/40 text-rose-455'
+                  ? 'border-amber-500/70 bg-amber-950/30 text-amber-300'
+                  : 'border-rose-500/70 bg-rose-950/30 text-rose-300'
               }`}>
-                <span className="text-xs uppercase font-bold tracking-wider block mb-1 text-slate-300">
-                  Regulatory Guardrail Response
-                </span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
+                    transaction.complianceResult?.status === 'PASSED_CLEAN'
+                      ? 'bg-emerald-950/60 border-emerald-500/60 text-emerald-300'
+                      : transaction.complianceResult?.status === 'OVERRIDDEN'
+                      ? 'bg-amber-950/60 border-amber-500/60 text-amber-300'
+                      : 'bg-rose-950/60 border-rose-500/60 text-rose-300'
+                  }`}>
+                    STEP 2 — REGULATORY GUARDRAIL (Deterministic Law)
+                  </span>
+                </div>
                 
                 {transaction.complianceResult?.status === 'PASSED_CLEAN' ? (
-                  <p className="text-sm text-emerald-400 font-semibold">
-                    Approved. The AI recovery action respects all active policies.
+                  <p className="text-xs text-emerald-300 font-semibold">
+                    ✓ Approved. The AI recovery action respects all active statutory policies.
                   </p>
                 ) : (
-                  <p className="text-sm text-slate-250 font-semibold mb-2">
-                    {transaction.complianceResult?.sanitizedAction}
-                  </p>
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-white font-bold leading-relaxed">
+                      {transaction.complianceResult?.sanitizedAction}
+                    </p>
+                  </div>
                 )}
 
                 {transaction.complianceResult?.ruleViolated && (
-                  <div className="pt-2.5 border-t border-slate-700/60 space-y-1">
-                    <div className="text-xs text-slate-350 font-medium">
-                      Violated Rule: <span className="text-amber-400 font-semibold font-mono">{transaction.complianceResult.ruleViolated}</span>
+                  <div className="mt-2.5 pt-2 border-t border-slate-700/60 space-y-1 text-xs">
+                    <div className="text-slate-300 font-medium">
+                      Violated Policy: <span className="text-amber-400 font-bold font-mono">{transaction.complianceResult.ruleViolated}</span>
                     </div>
-                    <div className="text-xs text-slate-300 leading-normal">
-                      Reason: <span className="text-slate-200">{transaction.complianceResult.overrideReason}</span>
+                    <div className="text-slate-300 leading-normal">
+                      Mandated Reason: <span className="text-slate-200">{transaction.complianceResult.overrideReason}</span>
                     </div>
                     {transaction.complianceResult.coolingPeriodHours && (
-                      <div className="text-xs text-slate-300">
-                        Cooling Period: <span className="text-sky-400 font-bold font-mono">{transaction.complianceResult.coolingPeriodHours} hours</span>
+                      <div className="text-slate-300">
+                        Required Cooling: <span className="text-[#0D94FB] font-bold font-mono">{transaction.complianceResult.coolingPeriodHours} hours</span>
                       </div>
                     )}
                   </div>
@@ -238,12 +254,12 @@ export const ComplianceMatrix: React.FC<ComplianceMatrixProps> = ({
 
             {/* 3. Cryptographic Stamp Card */}
             {transaction.complianceResult?.complianceStamp && (
-              <div className="border border-slate-700/60 bg-[#131B2E] rounded p-3.5 text-center">
-                <span className="text-xs text-slate-400 block mb-1.5 uppercase font-semibold tracking-wide">Cryptographic Compliance Receipt</span>
-                <span className="font-mono text-xs font-bold text-amber-400 bg-[#0B0F17] border border-slate-700/60 px-3 py-1.5 rounded inline-block tracking-wider">
+              <div className="border border-[#1B2C4B] bg-[#0B1426] rounded-lg p-3 text-center">
+                <span className="text-[10px] text-slate-400 block mb-1 uppercase font-semibold tracking-wide">Cryptographic Compliance Receipt</span>
+                <span className="font-mono text-[11px] font-bold text-amber-400 bg-[#070C18] border border-[#1B2C4B] px-2.5 py-1 rounded inline-block tracking-wider">
                   {transaction.complianceResult.complianceStamp}
                 </span>
-                <span className="text-xs text-slate-400 mt-2 block font-mono">
+                <span className="text-[10px] text-slate-400 mt-1.5 block font-mono">
                   Deterministically signed by Sentinel Engine. Hash logged to cryptoledger.
                 </span>
               </div>
@@ -253,10 +269,10 @@ export const ComplianceMatrix: React.FC<ComplianceMatrixProps> = ({
       </div>
 
       {/* Footer policy details */}
-      <div className="p-3.5 bg-[#131B2E] border-t border-slate-700/60 text-xs text-slate-400 flex items-center justify-between">
+      <div className="p-3 bg-[#012652]/30 border-t border-[#1B2C4B] text-xs text-slate-400 flex items-center justify-between">
         <span>Active Rules: {activeRules.length}</span>
-        <span className="flex items-center gap-1 font-mono">
-          <Shield className="w-3.5 h-3.5 text-slate-400" /> Gatekeeper: ACTIVE
+        <span className="flex items-center gap-1 font-mono text-[11px]">
+          <Shield className="w-3.5 h-3.5 text-[#0D94FB]" /> Gatekeeper: ACTIVE
         </span>
       </div>
     </div>
